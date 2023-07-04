@@ -124,9 +124,10 @@ VLOG_FLAGS    ?= \
 VLOG_FILE_LIST = -f $(DV_UVMT_PATH)/uvmt_$(CV_CORE_LC).flist
 
 VLOG_FLAGS += $(DPILIB_VLOG_OPT)
+VLOG_FLAGS += $(VLOG_USER_FLAGS)
 
 # Add the ISS to compilation
-VLOG_FILE_LIST += -f $(DV_UVMT_PATH)/imperas_iss.flist
+#VLOG_FILE_LIST += -f $(DV_UVMT_PATH)/imperas_iss.flist
 VLOG_FLAGS += "+define+$(CV_CORE_UC)_TRACE_EXECUTION"
 VLOG_FLAGS += "+define+UVM"
 
@@ -516,7 +517,7 @@ run: $(VSIM_RUN_PREREQ) gen_ovpsim_ic
 			-l vsim-$(VSIM_TEST).log \
 			$(DPILIB_VSIM_OPT) \
 			+UVM_TESTNAME=$(TEST_UVM_TEST) \
-			$(RTLSRC_VOPT_TB_TOP) \
+			$(RTLSRC_VLOG_TB_TOP) \
 			$(CFG_PLUSARGS) \
 			$(TEST_PLUSARGS)
 

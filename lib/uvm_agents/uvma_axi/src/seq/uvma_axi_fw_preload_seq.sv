@@ -31,24 +31,24 @@ class uvma_axi_fw_preload_seq_c extends uvm_sequence;
    longint address;
    longint len;
    byte buffer[];
-   
+
    `uvm_object_utils(uvma_axi_fw_preload_seq_c)
    `uvm_declare_p_sequencer(uvma_axi_r_sqr_c)
-   
+
    /**
     * Default constructor.
     */
-   extern function new(string name="uvma_axi_fw_preload_seq");
-   
+   extern function new(string name="uvma_axi_fw_preload_seq_c");
+
 
    extern virtual task body();
-   
+
 endclass : uvma_axi_fw_preload_seq_c
 
-function uvma_axi_fw_preload_seq_c::new(string name="uvma_axi_fw_preload_seq");
-   
+function uvma_axi_fw_preload_seq_c::new(string name="uvma_axi_fw_preload_seq_c");
+
    super.new(name);
-   mem = uvml_mem_c::type_id::create("mem");
+   mem = uvml_mem_c#(DEFAULT_XLEN)::type_id::create("mem");
 
 endfunction : new
 

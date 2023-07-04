@@ -29,11 +29,11 @@ ifeq ($(OS_IS_UBUNTU),Ubuntu)
 endif
 
 # Executables
-VCS              = $(CV_SIM_PREFIX) vcs
-SIMV             = $(CV_TOOL_PREFIX) simv -licwait 20
-DVE              = $(CV_TOOL_PREFIX) dve
+VCS              = $(CV_SIM_PREFIX)vcs
+SIMV             = $(CV_TOOL_PREFIX)simv -licwait 20
+DVE              = $(CV_TOOL_PREFIX)dve
 #VERDI            = $(CV_TOOL_PREFIX)verdi
-URG               = $(CV_SIM_PREFIX) urg
+URG               = $(CV_SIM_PREFIX)urg
 
 # Paths
 VCS_DIR         ?= $(SIM_CFG_RESULTS)/vcs.d
@@ -47,7 +47,8 @@ VCS_UVM_VERBOSITY ?= UVM_MEDIUM
 
 # Flags
 #VCS_UVMHOME_ARG ?= /opt/uvm/1800.2-2017-0.9/
-VCS_UVMHOME_ARG ?= /opt/synopsys/vcs-mx/O-2018.09-SP1-1/etc/uvm
+VCS_HOME        ?= /synopsys/vcs/S-2021.09-SP1/
+VCS_UVMHOME_ARG ?= $(VCS_HOME)/etc/uvm
 VCS_UVM_ARGS          ?= +incdir+$(VCS_UVMHOME_ARG)/src $(VCS_UVMHOME_ARG)/src/uvm_pkg.sv +UVM_VERBOSITY=$(VCS_UVM_VERBOSITY) -ntb_opts uvm-1.2
 
 VCS_COMP_FLAGS  ?= -lca -sverilog \
@@ -135,7 +136,7 @@ endif
 ################################################################################
 
 VCS_FILE_LIST ?= -f $(DV_UVMT_PATH)/uvmt_$(CV_CORE_LC).flist
-VCS_FILE_LIST += -f $(DV_UVMT_PATH)/imperas_iss.flist
+#VCS_FILE_LIST += -f $(DV_UVMT_PATH)/imperas_iss.flist
 VCS_USER_COMPILE_ARGS += +define+$(CV_CORE_UC)_TRACE_EXECUTION
 ifeq ($(call IS_YES,$(USE_ISS)),YES)
     VCS_PLUSARGS += +USE_ISS
@@ -145,9 +146,11 @@ endif
 
 VCS_RUN_BASE_FLAGS   ?= $(VCS_GUI) \
                         $(VCS_PLUSARGS) +ntb_random_seed=$(RNDSEED) \
-						-sv_lib $(VCS_OVP_MODEL_DPI) \
 						-sv_lib $(DPI_DASM_LIB) \
 						-sv_lib $(abspath $(SVLIB_LIB))
+
+# TODO \
+						-sv_lib $(VCS_OVP_MODEL_DPI) \
 
 # Simulate using latest elab
 VCS_RUN_FLAGS        ?=
@@ -158,7 +161,7 @@ VCS_RUN_FLAGS        += $(USER_RUN_FLAGS)
 
 # Special var to point to tool and installation dependent path of DPI headers.
 # Used to recompile dpi_dasm_spike if needed (by default, not needed).
-DPI_INCLUDE          ?= $(shell dirname $(shell which vcs))/../lib
+DPI_INCLUDE          ?= $(shell dirname $(shell which vcs))/../include/
 
 ###############################################################################
 # Targets
@@ -179,6 +182,7 @@ mk_vcs_dir:
 hello-world:
 	$(MAKE) test TEST=hello-world
 
+
 VCS_COMP = $(VCS_COMP_FLAGS) \
 		$(QUIET) \
 		$(VCS_UVM_ARGS) \
@@ -189,8 +193,8 @@ VCS_COMP = $(VCS_COMP_FLAGS) \
 		$(VCS_FILE_LIST) \
 		$(UVM_PLUSARGS)
 
-comp: mk_vcs_dir $(CV_CORE_PKG) $(SVLIB_PKG) $(OVP_MODEL_DPI)
-	cd $(SIM_CFG_RESULTS)/$(CFG) && $(VCS) $(VCS_COMP) -top uvmt_$(CV_CORE_LC)_tb
+comp: libs mk_vcs_dir $(CV_CORE_PKG) $(SVLIB_PKG) $(OVP_MODEL_DPI)
+	cd $(VCS_DIR) && $(VCS) $(VCS_COMP) -top uvmt_$(CV_CORE_LC)_tb
 	@echo "$(BANNER)"
 	@echo "* $(SIMULATOR) compile complete"
 	@echo "* Log: $(SIM_CFG_RESULTS)/vcs.log"
@@ -220,19 +224,24 @@ export IMPERAS_TOOLS=$(SIM_RUN_RESULTS)/ovpsim.ic
 ################################################################################
 # The new general test target
 
-test: $(VCS_SIM_PREREQ) hex gen_ovpsim_ic
+test: hex $(VCS_SIM_PREREQ) gen_ovpsim_ic
 	echo $(IMPERAS_TOOLS)
 	mkdir -p $(SIM_RUN_RESULTS)
 	cd $(SIM_RUN_RESULTS) && \
-		$(VCS_RESULTS)/$(CFG)/$(SIMV) \
+		$(VCS_DIR)/$(SIMV) \
+			 +UVM_VERBOSITY=$(VCS_UVM_VERBOSITY) \
 			-l vcs-$(TEST_NAME).log \
 			-cm_name $(TEST_NAME) $(VCS_RUN_FLAGS) \
 			$(CFG_PLUSARGS) \
 			$(TEST_PLUSARGS) \
 			+UVM_TESTNAME=$(TEST_UVM_TEST) \
-    		+elf_file=$(SIM_TEST_PROGRAM_RESULTS)/$(TEST_PROGRAM)$(OPT_RUN_INDEX_SUFFIX).elf \
+		+elf_file=$(SIM_TEST_PROGRAM_RESULTS)/$(TEST_PROGRAM)$(OPT_RUN_INDEX_SUFFIX).elf \
+		+PRELOAD=$(SIM_TEST_PROGRAM_RESULTS)/$(TEST_PROGRAM)$(OPT_RUN_INDEX_SUFFIX).elf \
+		++$(SIM_TEST_PROGRAM_RESULTS)/$(TEST_PROGRAM)$(OPT_RUN_INDEX_SUFFIX).elf \
 			+firmware=$(SIM_TEST_PROGRAM_RESULTS)/$(TEST_PROGRAM)$(OPT_RUN_INDEX_SUFFIX).hex \
 			+itb_file=$(SIM_TEST_PROGRAM_RESULTS)/$(TEST_PROGRAM)$(OPT_RUN_INDEX_SUFFIX).itb
+
+# This needs rework (elf-file,PRELOAD,++)
 
 ###############################################################################
 # Run a single test-program from the RISC-V Compliance Test-suite. The parent

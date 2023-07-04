@@ -39,7 +39,7 @@ endclass : uvma_axi_cntxt_c
 function uvma_axi_cntxt_c::new(string name = "uvma_axi_cntxt");
 
    super.new(name);
-   mem = uvml_mem_c#(64)::type_id::create("mem");
+   mem = uvml_mem_c#(DEFAULT_XLEN)::type_id::create("mem");
 
 endfunction : new
 

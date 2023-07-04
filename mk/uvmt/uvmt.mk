@@ -167,7 +167,7 @@ RTLSRC_VOPT_TB_TOP	:= $(addsuffix _vopt, $(RTLSRC_VLOG_TB_TOP))
 # RTL source files for the CV32E core
 # DESIGN_RTL_DIR is used by CV32E40P_MANIFEST file
 CV_CORE_PKG          := $(CORE_V_VERIF)/core-v-cores/$(CV_CORE_LC)
-CV_CORE_MANIFEST     := $(CV_CORE_PKG)/$(CV_CORE_LC)_manifest.flist
+CV_CORE_MANIFEST     := $(CV_CORE_PKG)/core/Flist.$(CV_CORE_LC)
 export DESIGN_RTL_DIR = $(CV_CORE_PKG)/rtl
 
 RTLSRC_HOME   := $(CV_CORE_PKG)/rtl
@@ -369,7 +369,11 @@ else
 ifeq ($(SIMULATOR), riviera)
 include $(CORE_V_VERIF)/mk/uvmt/riviera.mk
 else
+ifeq ($(SIMULATOR), veri)
+include $(CORE_V_VERIF)/mk/uvmt/veri.mk
+else
 include $(CORE_V_VERIF)/mk/uvmt/unsim.mk
+endif
 endif
 endif
 endif

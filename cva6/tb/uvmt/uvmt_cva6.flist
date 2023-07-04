@@ -14,6 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.0
 
+-f ${CVA6_UVMT_DIR}/../core/Flist.cva6_tb
+
 // Libraries
 -f ${DV_UVML_HRTBT_PATH}/uvml_hrtbt_pkg.flist
 -f ${DV_UVML_TRN_PATH}/uvml_trn_pkg.flist

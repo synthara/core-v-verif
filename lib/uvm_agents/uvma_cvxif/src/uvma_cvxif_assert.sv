@@ -33,6 +33,7 @@ module uvma_cvxif_assert #(parameter X_ID_WIDTH    = cvxif_pkg::X_ID_WIDTH,
     // Begin module code
    // ---------------------------------------------------------------------------
 
+`ifndef VERILATOR
    /**
     * Issue_interface
    */
@@ -175,5 +176,7 @@ module uvma_cvxif_assert #(parameter X_ID_WIDTH    = cvxif_pkg::X_ID_WIDTH,
    property p_result_dualwrite;
       (cvxif_assert.cvxif_resp_o.x_result_valid && (cvxif_assert.cvxif_resp_o.x_result.we[X_RFW_WIDTH/riscv::XLEN-1])) |-> cvxif_assert.cvxif_resp_o.x_result.we[0];
    endproperty
+
+`endif
 
 endmodule : uvma_cvxif_assert

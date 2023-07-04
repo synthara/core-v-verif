@@ -278,7 +278,7 @@ static void vprintfmt(void (*putch)(int, void**), void **putdat, const char *fmt
     case '-':
       padc = '-';
       goto reswitch;
-      
+
     // flag to pad with 0's instead of spaces
     case '0':
       padc = '0';
@@ -387,7 +387,7 @@ static void vprintfmt(void (*putch)(int, void**), void **putdat, const char *fmt
     case '%':
       putch(ch, putdat);
       break;
-      
+
     // unrecognized escape sequence - just print it literally
     default:
       putch('%', putdat);
@@ -519,3 +519,4 @@ long atol(const char* str)
 
   return sign ? -res : res;
 }
+

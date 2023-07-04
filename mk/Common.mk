@@ -280,6 +280,19 @@ endif
 endif
 endif
 
+ifndef CV_SW_MABI
+ifdef  TEST_CV_SW_MABI
+CV_SW_MABI = $(TEST_CV_SW_MABI)
+else
+ifdef  CFG_CV_SW_MABI
+CV_SW_MABI = $(CFG_CV_SW_MABI)
+else
+CV_SW_MABI = ilp32
+$(warning CV_SW_MABI not defined in either the shell environment, test.yaml or cfg.yaml)
+endif
+endif
+endif
+
 ifndef CV_SW_CC
 ifdef  TEST_CV_SW_CC
 CV_SW_CC = $(TEST_CV_SW_CC)
@@ -310,10 +323,11 @@ RISCV_PREFIX     = $(CV_SW_PREFIX)
 RISCV_EXE_PREFIX = $(RISCV)/bin/$(RISCV_PREFIX)
 
 RISCV_MARCH      = $(CV_SW_MARCH)
+RISCV_MABI       = $(CV_SW_MABI)
 RISCV_CC         = $(CV_SW_CC)
 RISCV_CFLAGS     = $(CV_SW_CFLAGS)
 
-CFLAGS ?= -Os -g -static -mabi=ilp32 -march=$(RISCV_MARCH) -Wall -pedantic $(RISCV_CFLAGS)
+CFLAGS ?= -Os -g -static -mabi=$(RISCV_MABI) -march=$(RISCV_MARCH) -Wall -pedantic $(RISCV_CFLAGS) $(USER_CFLAGS)
 
 $(warning RISCV set to $(RISCV))
 $(warning RISCV_PREFIX set to $(RISCV_PREFIX))
@@ -518,8 +532,10 @@ bsp:
 		RISCV_PREFIX=$(RISCV_PREFIX) \
 		RISCV_EXE_PREFIX=$(RISCV_EXE_PREFIX) \
 		RISCV_MARCH=$(RISCV_MARCH) \
+		RISCV_MABI=$(RISCV_MABI) \
 		RISCV_CC=$(RISCV_CC) \
 		RISCV_CFLAGS="$(RISCV_CFLAGS)" \
+		RISCV_USER_CFLAGS="$(USER_CFLAGS)" \
 		all
 
 vars_bsp:
@@ -671,24 +687,26 @@ vcs-unit-test:  vcs-run
 
 DPI_DASM_SRC    = $(DPI_DASM_PKG)/dpi_dasm.cxx $(DPI_DASM_PKG)/spike/disasm.cc $(DPI_DASM_SPIKE_PKG)/disasm/regnames.cc
 DPI_DASM_ARCH   = $(shell uname)$(shell getconf LONG_BIT)
-DPI_DASM_LIB    = $(DPI_DASM_PKG)/lib/$(DPI_DASM_ARCH)/libdpi_dasm.so
+DPI_DASM_LIB    = $(DPI_DASM_PKG)/lib/$(DPI_DASM_ARCH)/libdpi_dasm
 DPI_DASM_CFLAGS = -shared -fPIC -std=c++11
 DPI_DASM_INC    = -I$(DPI_DASM_PKG) -I$(DPI_INCLUDE) -I$(DPI_DASM_SPIKE_PKG)/riscv -I$(DPI_DASM_SPIKE_PKG)/softfloat
 DPI_DASM_CXX    = g++
 
 dpi_dasm: $(DPI_DASM_SPIKE_PKG)
-	$(DPI_DASM_CXX) $(DPI_DASM_CFLAGS) $(DPI_DASM_INC) $(DPI_DASM_SRC) -o $(DPI_DASM_LIB)
+	$(DPI_DASM_CXX) $(DPI_DASM_CFLAGS) $(DPI_DASM_INC) $(DPI_DASM_SRC) -o $(DPI_DASM_LIB).so
 
 ###############################################################################
 # Build SVLIB DPI
 
 SVLIB_SRC    = $(SVLIB_PKG)/svlib/src/dpi/svlib_dpi.c
 SVLIB_CFLAGS = -shared -fPIC
-SVLIB_LIB    = $(SVLIB_PKG)/../svlib_dpi.so
+SVLIB_LIB    = $(SVLIB_PKG)/../svlib_dpi
 SVLIB_CXX    = gcc
 
 svlib: $(SVLIB_PKG)
-	$(SVLIB_CXX) $(SVLIB_CFLAGS) $(SVLIB) $(SVLIB_SRC) -I$(DPI_INCLUDE) -o $(SVLIB_LIB)
+	$(SVLIB_CXX) $(SVLIB_CFLAGS) $(SVLIB) $(SVLIB_SRC) -I$(DPI_INCLUDE) -o $(SVLIB_LIB).so
+
+libs: dpi_dasm svlib
 
 .PHONY: firmware-clean
 firmware-clean:

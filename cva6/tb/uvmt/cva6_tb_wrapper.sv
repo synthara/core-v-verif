@@ -242,7 +242,6 @@ module cva6_tb_wrapper
            longint len;
            byte buffer[];
            void'(uvcl.get_arg_value("+PRELOAD=", binary));
-
            if (binary != "") begin
 
                void'(read_elf(binary));

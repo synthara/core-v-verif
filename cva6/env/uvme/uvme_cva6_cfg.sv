@@ -140,7 +140,7 @@ class uvme_cva6_cfg_c extends uvma_core_cntrl_cfg_c;
          isacov_cfg.enabled    == 1;
          rvfi_cfg.enabled      == 1;
       }
-      
+
       isacov_cfg.seq_instr_group_x2_enabled == 1;
       isacov_cfg.seq_instr_group_x3_enabled == 0;
       isacov_cfg.seq_instr_group_x4_enabled == 0;
@@ -148,7 +148,7 @@ class uvme_cva6_cfg_c extends uvma_core_cntrl_cfg_c;
       isacov_cfg.reg_crosses_enabled        == 1;
       isacov_cfg.reg_hazards_enabled        == 1;
       rvfi_cfg.nret                         == RVFI_NRET;
-      
+
       if (is_active == UVM_ACTIVE) {
          clknrst_cfg.is_active   == UVM_ACTIVE;
          isacov_cfg.is_active    == UVM_PASSIVE;
