@@ -87,9 +87,9 @@ endif
 # Generate command to clone or symlink the core RTL
 ifeq ($(CV_CORE_PATH),)
   ifeq ($(CV_CORE_BRANCH), master)
-    TMP = git clone $(CV_CORE_REPO) $(CV_CORE_PKG)
+    TMP = git clone $(CV_CORE_REPO) $(CV_CORE_PKG) --recurse-submodules
   else
-    TMP = git clone -b $(CV_CORE_BRANCH) --single-branch $(CV_CORE_REPO) $(CV_CORE_PKG)
+    TMP = git clone -b $(CV_CORE_BRANCH) --single-branch $(CV_CORE_REPO) $(CV_CORE_PKG) --recurse-submodules
   endif
 
   # If a TAG is specified, the HASH is not considered

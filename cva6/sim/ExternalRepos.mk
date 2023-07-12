@@ -14,7 +14,7 @@
 export SHELL = /bin/bash
 
 CV_CORE_REPO   ?= https://github.com/MarioOpenHWGroup/cva6
-CV_CORE_BRANCH ?= master
+CV_CORE_BRANCH ?= feature/cva6_to_makefile
 CV_CORE_HASH   ?=
 CV_CORE_TAG    ?= none
 # The CV_CORE_HASH above points to version of the RTL that is newer, but
