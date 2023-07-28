@@ -1,0 +1,52 @@
+#!/bin/bash
+
+##### CORE-V Toolchain
+export RISCV=/opt/riscv/corev-openhw-gcc/
+
+export CV_SW_TOOLCHAIN=$RISCV
+export COREV_SW_TOOLCHAIN=$RISCV
+export PATH=$RISCV/bin:$PATH
+
+##### RISC-V Toolchain
+export RISCV_SW_TOOLCHAIN=$RISCV
+
+
+##### Cadence
+export CDS_LIC_FILE=
+
+##### Synopsys VCS
+export SNPSLMD_LICENSE_FILE=
+export VCS_HOME=
+export VERDI_HOME=
+export SPYGLASS_HOME=
+export SYN_HOME=
+export FORMALITY_HOME=
+
+export PATH=$VCS_HOME/bin:$VERDI_HOME/bin:$SPYGLASS_HOME/bin:$SYN_HOME/bin:$FORMALITY_HOME/bin:$PATH
+
+### Siemens
+export QUESTASIM_HOME=
+export QUESTAROOT=${QUESTASIM_HOME}
+export LM_LICENSE_FILE=
+
+export PATH=${QUESTASIM_HOME}/bin:$PATH
+
+export ONESPIN_HOME=
+export PATH=${ONESPIN_HOME}/bin/:$PATH
+
+export FORMAL_HOME=
+export PATH=${FORMAL_HOME}/bin/:$PATH
+
+export ONESPIN_HOME=
+
+if [[ -n "$ONESPIN_HOME" ]]; then
+    export PATH=${ONESPIN_HOME}/bin:${PATH}
+fi
+
+##### Locally installed tools
+
+export VERILATOR_ROOT=/opt/verilator-v5.008/
+export PATH=$VERILATOR_ROOT/bin:$PATH
+
+alias python=python3
+

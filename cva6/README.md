@@ -16,39 +16,50 @@ This BSP is used by both `core` testbench and `uvmt_cva6` UVM verification envir
 
 There are README files in each directory with additional information.
 
-## Prerequisites
-To execute tests on CVA6 core, you need a RISC-V toolchain.
+## Quick Start Guide
 
-Be aware that only gcc 11.1.0 or newer are supported in core-v-verif repository.
-To build and install riscv gcc compiler in local, you can use the following commands :
+### Requirements
 
-- `git clone https://github.com/riscv-collab/riscv-gnu-toolchain`
-- `cd riscv-gnu-toolchain`
-- `git clone https://github.com/gcc-mirror/gcc -b releases/gcc-13 gcc-13`
-- ```./configure –prefix:/path/to/installation/directory --with-multilib-generator="rv32e-ilp32e--;rv32i-ilp32--;rv32im-ilp32--;rv32iac-ilp32--;rv32imac-ilp32--;rv32imafc-ilp32f--;rv32imafdc-ilp32d--;rv64i-lp64--;rv64ic-lp64--;rv64iac-lp64--;rv64imac-lp64--;rv64imafdc-lp64d--;rv64im-lp64--;" --with-gcc-src=`pwd`/gcc-13```
-- `make –j32`
+Many people who come to `CORE-V-VERIF <https://github.com/openhwgroup/core-v-verif>`_ for the first time
+are anxious to 'get something running' and this section is written to satisfy that itch.
 
-These commands will install the riscv gcc 13.1.0 compiler which is the latest version.
-Once running the previous commands, your environment must be updated with :
+Note: in several places in this chapter a reference is made to $CORE_V_VERIF.
+This is used as short hand for the absolute path to your local working directory.
+You will not need to set this shell environment variable yourself.
+
+In order to run the CVA6 with a RISCV test you will need:
+
+- A Linux machine (CORE-V-VERIF has been successfully run under Debian and CentOS).
+- Python3 and a set of plug-ins.
+- A GCC system-compiler with version equal or greater than 8 with support for the standard c++17.
+- A GCC cross-compiler (aka "the [Toolchain](https://github.com/openhwgroup/core-v-verif/blob/master/mk/TOOLCHAIN.md#core-v-toolchain). Even if you already have a RISC-V toolchain, please do follow that link and read `TOOLCHAIN.md <https://github.com/openhwgroup/core-v-verif/blob/master/mk/TOOLCHAIN.md>`_ for recommended ENV variables to point to it. Be aware that only gcc 11.1.0 or newer are supported in core-v-verif repository.
+- [Verilator](https://veripool.org/guide/latest/install.html>). It will be installed in case it is not detected in the system.
+
+An easy way to get the Python plug-ins installed on your machine is::
+
+```
+   $ pip3 install pyyaml
+```
+
+**Note:** Virtual python environments can be used if desired.
+
+To make the scripts the following variables must be set:
 
 - `export RISCV=/path/to/installation/directory`
-- `export RISCV_PREFIX=/path/to/installation/directory/bin/riscv64-unknown-`
-- `export RISCV_GCC=/path/to/installation/directory/bin/riscv64-unknown-gcc`
-- `export CV_SW_PREFIX=riscv64-unknown-elf-`
 
-This 4 variables will ensure you use correctly the new gcc compiler you have just installed.
-You will now be able to run the test scripts.
+### To execute
 
-## Test execution
+To execute CVA6, currently we use a system of bash scripts which do all the
+necessary to execute once the principal requirements are fullfiled.
+
 Run one of the shell scripts:
 
-- `source cva6/regress/dv-riscv-compliance.sh`:
+- `bash cva6/regress/smoke-tests.sh`
+- `bash cva6/regress/dv-riscv-compliance.sh`:
 [riscv-compliance](https://github.com/riscv/riscv-compliance) test suite,
-- `source cva6/regress/dv-riscv-tests.sh`:
+- `bash cva6/regress/dv-riscv-tests.sh`:
 [riscv-tests](https://github.com/riscv/riscv-tests) test suite.
 
-These tests are using [riscv-dv](https://github.com/google/riscv-dv)
-as environment.
 
 ## Environment variables
 Other environment variables can be set to overload default values
