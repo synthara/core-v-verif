@@ -10,6 +10,7 @@ ARGS="${ARGS} -u $(id -u ${USER}):$(id -g ${USER})"
 ARGS="${ARGS} -h $(hostname)-docker"
 [[ -d /synopsys ]] && ARGS="${ARGS} -v /synopsys/:/synopsys/:ro"
 [[ -d /scratch ]] && ARGS="${ARGS} -v /scratch/:/scratch"
+[[ -f /opt/utils/utilsrc ]] && ARGS="${ARGS} -v /opt/utils/utilsrc:/opt/utils/utilsrc:ro"
 
 current_path=$(pwd)
 
