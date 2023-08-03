@@ -3,13 +3,14 @@
 ARGS="${ARGS} -v /etc/group:/etc/group:ro"
 ARGS="${ARGS} -v /etc/passwd:/etc/passwd:ro"
 ARGS="${ARGS} -v /etc/hostname:/etc/hostname:ro"
-ARGS="${ARGS} -v /synopsys/:/synopsys/:ro"
+ARGS="${ARGS} --network host "
+ARGS="${ARGS} -v /etc/resolv.conf:/etc/resolv.conf:ro "
 ARGS="${ARGS} -v $HOME/:$HOME/"
 ARGS="${ARGS} -u $(id -u ${USER}):$(id -g ${USER})"
 ARGS="${ARGS} -h $(hostname)-docker"
-ARGS="${ARGS} --network host "
-ARGS="${ARGS} -v /etc/resolv.conf:/etc/resolv.conf:ro "
+[[ -d /synopsys ]] && ARGS="${ARGS} -v /synopsys/:/synopsys/:ro"
+[[ -d /scratch ]] && ARGS="${ARGS} -v /scratch/:/scratch"
 
 current_path=$(pwd)
 
-docker run --rm ${ARGS} -it openhw/debian10/cva6 bash -c "cd $HOME; source /opt/utils/utilsrc; cd $current_path; $*;"
+docker run --rm ${ARGS} -it openhw/debian10/cva6 bash -c "cd $current_path; source /opt/utils/utilsrc; $*;"

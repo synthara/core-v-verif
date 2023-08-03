@@ -561,7 +561,7 @@ def run_c(c_test, iss_yaml, isa, target, mabi, gcc_opts, iss_opts, output_dir,
          -nostartfiles %s \
          -I%s/dv/user_extension \
           -T%s %s -o %s " % \
-         (get_env_var("RISCV_GCC", debug_cmd = debug_cmd), c_test, cwd, 
+         (get_env_var("RISCV_GCC", debug_cmd = debug_cmd), c_test, cwd,
 					  linker, gcc_opts, elf))
   cmd += (" -march=%s" % isa)
   cmd += (" -mabi=%s" % mabi)
@@ -849,9 +849,9 @@ def load_config(args, cwd):
   Returns:
       Loaded configuration dictionary.
   """
-  
+
   global isa_extension_list
-  isa_extension_list = args.isa_extension.split(",")  
+  isa_extension_list = args.isa_extension.split(",")
   isa_extension_list.append("zicsr")
   isa_extension_list.append("zifencei")
 
@@ -1017,13 +1017,13 @@ def main():
     cfg = load_config(args, cwd)
     # Create output directory
     output_dir = create_output(args.o, args.noclean, cwd+"/out_")
-    
+
     #add z,s,x extensions to the isa if there are some
-    if isa_extension_list !=['']:	
+    if isa_extension_list !=['']:
       for i in isa_extension_list:
         if i!= "":
           args.isa += (f"_{i}")
-        
+
     if args.verilog_style_check:
       logging.debug("Run style check")
       style_err = run_cmd("verilog_style/run.sh")

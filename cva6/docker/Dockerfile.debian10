@@ -10,14 +10,13 @@ FROM base AS build
 COPY install-verilator.sh /tmp/
 COPY verilator-v5.patch /tmp/
 
-RUN /tmp/install-verilator.sh /opt/verilator-v5.008/
+RUN bash /tmp/install-verilator.sh /opt/verilator-v5.008/
 
 RUN mkdir -p /opt/riscv/ \
     && wget https://buildbot.embecosm.com/job/riscv32-gcc-ubuntu2004/178/artifact/riscv32-embecosm-gcc-ubuntu2004-20230702.tar.gz -O /tmp/corev.tar.gz \
     && tar xf /tmp/corev.tar.gz -C /opt/riscv/ && mv /opt/riscv/riscv32-embecosm-gcc-ubuntu2004-20230702/ /opt/riscv/corev-openhw-gcc/ \
     && rm -rf /tmp/corev.tar.gz
 
-COPY utilsrc /opt/utils/utilsrc
 
 FROM base
 
@@ -31,5 +30,7 @@ RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/
     && rm -rf /var/lib/apt/lists/*
 
 RUN echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+COPY utilsrc /opt/utils/utilsrc
 
 RUN ln -sf bash /bin/sh

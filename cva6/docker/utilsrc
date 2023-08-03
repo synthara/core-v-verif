@@ -46,6 +46,8 @@ fi
 ##### Locally installed tools
 
 export VERILATOR_ROOT=/opt/verilator-v5.008/
+export VERILATOR_INSTALL_DIR=$VERILATOR_ROOT
+export VERILATOR_BUILD_DIR=$VERILATOR_ROOT/verilator/
 export PATH=$VERILATOR_ROOT/bin:$PATH
 
 alias python=python3

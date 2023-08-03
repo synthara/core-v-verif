@@ -12,7 +12,7 @@ if [ -z "$NUM_JOBS" ]; then
 fi
 
 
-export VERILATOR_BUILD_DIR=/tmp/verilator
+export VERILATOR_BUILD_DIR=/tmp/verilator/
 export VERILATOR_INSTALL_DIR=$1 # /opt/verilator-v5.008
 
 VERILATOR_REPO="https://github.com/verilator/verilator.git"
@@ -56,7 +56,8 @@ if [ ! -f "$VERILATOR_INSTALL_DIR/bin/verilator" ]; then
     # to preserve user content - let git fail instead.
     [ -d .git ] || git clone $VERILATOR_REPO -b $VERILATOR_BRANCH .
     git checkout $VERILATOR_HASH
-    if [[ -n "$VERILATOR_PATCH" && -f "$VERILATOR_PATCH" ]] ; then
+    if [[ -n "$VERILATOR_PATCH" && -f "$VERILATOR_PATCH" ]]; then
+      echo "Verilator: Patch applied"
       git apply $VERILATOR_PATCH || true
     fi
     # Generate the config script and configure Verilator.
@@ -67,7 +68,6 @@ if [ ! -f "$VERILATOR_INSTALL_DIR/bin/verilator" ]; then
     make install
     #make test || echo "### 'make test' in $VERILATOR_ROOT: some tests failed."
     cd -
-    rm -rf $VERILATOR_BUILD_DIR
 else
     echo "Using Verilator from cached directory $VERILATOR_INSTALL_DIR."
 fi
