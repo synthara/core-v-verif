@@ -55,7 +55,8 @@ endfunction : new
 task uvma_axi_fw_preload_seq_c::body();
 
    cfg   = p_sequencer.cfg  ;
-   void'(uvcl.get_arg_value("+PRELOAD=", binary));
+   void'(uvcl.get_arg_value("+elf_file=", binary));
+
 
    if (binary != "") begin
       void'(read_elf(binary));
@@ -63,7 +64,7 @@ task uvma_axi_fw_preload_seq_c::body();
       // while there are more sections to process
       while (get_section(address, len)) begin
          automatic int num_words0 = (len+7)/8;
-         `uvm_info( "Core Test", $sformatf("Loading Address: %x, Length: %x", address, len), UVM_HIGH)
+         `uvm_info( "fw_preload_seq", $sformatf("Loading Address: %x, Length: %x", address, len), UVM_HIGH)
          buffer = new [num_words0*8];
          void'(read_section(address, buffer));
          // preload memories

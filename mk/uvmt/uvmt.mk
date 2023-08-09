@@ -364,6 +364,7 @@ ifeq ($(SIMULATOR), vsim)
 include $(CORE_V_VERIF)/mk/uvmt/vsim.mk
 else
 ifeq ($(SIMULATOR), vcs)
+include $(CORE_V_VERIF)/mk/edavendors/vcs.mk
 include $(CORE_V_VERIF)/mk/uvmt/vcs.mk
 else
 ifeq ($(SIMULATOR), riviera)

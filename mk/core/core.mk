@@ -31,6 +31,7 @@ endif
 DATE           = $(shell date +%F)
 CV_CORE_LC     = $(shell echo $(CV_CORE) | tr A-Z a-z)
 CV_CORE_UC     = $(shell echo $(CV_CORE) | tr a-z A-Z)
+SIMULATOR_UC   = $(shell echo $(SIMULATOR) | tr a-z A-Z)
 export CV_CORE_LC
 export CV_CORE_UC
 .DEFAULT_GOAL := no_rule

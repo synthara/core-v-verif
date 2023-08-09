@@ -105,14 +105,6 @@ VSIM_LDGEN_FLAGS ?= \
 ###############################################################################
 # VLOG (Compilation)
 VLOG_FLAGS    ?= \
-		-suppress 2577 \
-		-suppress 2583 \
-		-suppress 13185 \
-		-suppress 13314 \
-		-suppress 13288 \
-		-suppress 2181 \
-		-suppress 13262 \
-		-suppress vlog-2745 \
 		-timescale "1ns/1ps" \
 		-sv \
 		-64 \

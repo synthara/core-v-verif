@@ -52,6 +52,8 @@ DPI_DASM_SPIKE_REPO  ?= https://github.com/riscv/riscv-isa-sim.git
 CV_SW_TOOLCHAIN      ?= /opt/riscv
 CV_SW_PREFIX         ?= " "
 
+DV_TARGET=uvmt
+
 export CVA6_UVMT_DIR          = $(CORE_V_VERIF)/cva6/tb/uvmt
 export CVA6_UVMT_PATH         = $(CORE_V_VERIF)/cva6/tb/uvmt
 export CVA6_UVME_PATH         = $(CORE_V_VERIF)/cva6/env/uvme
@@ -78,15 +80,16 @@ export CVA6_REPO_DIR          = $(CV_CORE_PKG)
 export CVA6_TB_DIR            = $(CVA6_UVMT_PATH)/../core/
 export DESIGN_RTL_DIR         = $(CV_CORE_PKG)/rtl
 
-#export TARGET_CFG=cv64a6_imafdc_sv39
-export TARGET_CFG=cv32a60x
+export TARGET_CFG=cv64a6_imafdc_sv39
+#export TARGET_CFG=cv32a60x
 
 VCS_USER_COMPILE_ARGS = +define+UNSUPPORTED_WITH+ -assert svaext -race=all -ignore unique_checks -full64
 VCS_RUN_FLAGS = -sv_lib $(CV_CORE_PKG)/work-dpi/ariane_dpi +debug_disable=1 \
 		+ntb_random_seed=1 +signature=I-ADD-01.signature_output
 
-VLOG_USER_FLAGS = +define+UNSUPPORTED_WITH+ # -suppress 2911
-VSIM_USER_FLAGS =  -suppress 3838
+VLOG_USER_FLAGS = +define+UNSUPPORTED_WITH+ -svinputport=relaxed -suppress 2583
+VSIM_USER_FLAGS =  -suppress 3838 -sv_lib $(CV_CORE_PKG)/work-dpi/ariane_dpi \
+		    +ntb_random_seed=1 +debug_disable=1 +signature=I-ADD-01.signature_output
 
 USER_CFLAGS = -static -mcmodel=medany -static -std=gnu99 -static -O2  -fno-builtin-printf -fno-tree-loop-distribute-patterns -DPREALLOCATE=1
 

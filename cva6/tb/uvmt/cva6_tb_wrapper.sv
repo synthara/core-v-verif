@@ -27,10 +27,11 @@
 `define USER_MEM(P) uvmt_cva6_tb.cva6_dut_wrap.cva6_tb_wrapper_i.i_sram.gen_cut[0].gen_mem_user.i_tc_sram_wrapper_user.i_tc_sram.init_val[(``P``)]
 
 import uvm_pkg::*;
+import cva6_config_pkg::*;
+
 
 `include "uvm_macros.svh"
 
-import "DPI-C" function read_elf(input string filename);
 import "DPI-C" function byte get_section(output longint address, output longint len);
 import "DPI-C" context function void read_section(input longint address, inout byte buffer[]);
 
@@ -68,7 +69,8 @@ module cva6_tb_wrapper
   ) i_cva6 (
     .clk_i                ( clk_i                     ),
     .rst_ni               ( rst_ni                    ),
-    .boot_addr_i          ( boot_addr_i               ),//Driving the boot_addr value from the core control agent
+    .boot_addr_i          ({{CVA6ConfigXlen-XLEN,'b0}, boot_addr_i}),//Driving the boot_addr value from the core control agent
+
     .hart_id_i            ( 64'h0000_0000_0000_0000   ),
     .irq_i                ( 2'b00 /*irqs*/            ),
     .ipi_i                ( 1'b0  /*ipi*/             ),
