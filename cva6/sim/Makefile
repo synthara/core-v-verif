@@ -226,7 +226,7 @@ vcs_uvm_run:
 	$(VCS_WORK_DIR)/simv ${ALL_SIMV_UVM_FLAGS} \
 	++$(elf) \
 	+PRELOAD=$(elf) \
-	+tohost_addr=$(shell $$RISCV/bin/riscv-none-elf-nm -B $(elf) | grep -w tohost | cut -d' ' -f1) \
+	+tohost_addr=$(shell $$RISCV/bin/${CV_SW_PREFIX}nm -B $(elf) | grep -w tohost | cut -d' ' -f1) \
 	-sv_lib $(dpi-library)/ariane_dpi \
 	$(cov-run-opt) $(issrun_opts) && \
 	mv $(VCS_WORK_DIR)/trace_rvfi_hart_00.dasm $(CORE_V_VERIF)/cva6/sim/ && \

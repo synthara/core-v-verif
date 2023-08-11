@@ -10,7 +10,11 @@ ARGS="${ARGS} -u $(id -u ${USER}):$(id -g ${USER})"
 ARGS="${ARGS} -h $(hostname)-docker"
 [[ -d /synopsys ]] && ARGS="${ARGS} -v /synopsys/:/synopsys/:ro"
 [[ -d /scratch ]] && ARGS="${ARGS} -v /scratch/:/scratch"
-[[ -f /opt/utils/utilsrc ]] && ARGS="${ARGS} -v /opt/utils/utilsrc:/opt/utils/utilsrc:ro"
+for i in utils mentor synopsys cadence
+do
+    [[ -f /opt/utils/${i}rc ]] && ARGS="${ARGS} -v /opt/${i}rc:/opt/${i}rc:ro"
+done
+[[ -n "$DV_SIMULATORS" ]] && ARGS="${ARGS} -e DV_SIMULATORS=$DV_SIMULATORS"
 
 current_path=$(pwd)
 

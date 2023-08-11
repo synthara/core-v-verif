@@ -1,0 +1,19 @@
+#!/bin/bash
+
+export QUESTASIM_HOME=
+export QUESTAROOT=${QUESTASIM_HOME}
+export LM_LICENSE_FILE=
+
+export PATH=${QUESTASIM_HOME}/bin:$PATH
+
+export ONESPIN_HOME=
+export PATH=${ONESPIN_HOME}/bin/:$PATH
+
+export FORMAL_HOME=
+export PATH=${FORMAL_HOME}/bin/:$PATH
+
+export ONESPIN_HOME=
+
+if [[ -n "$ONESPIN_HOME" ]]; then
+    export PATH=${ONESPIN_HOME}/bin:${PATH}
+fi

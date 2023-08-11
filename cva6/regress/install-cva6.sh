@@ -29,6 +29,10 @@ if [ -z "$RISCV_OBJCOPY" ]; then
     export RISCV_OBJCOPY=$RISCV/bin/${CV_SW_PREFIX}objcopy
 fi
 
+if [ -z "$RISCV_NM" ]; then
+    export RISCV_NM=$RISCV/bin/${CV_SW_PREFIX}nm
+fi
+
 # Set up tool-related variables.
 export PATH="$RISCV/bin:$PATH"
 export LIBRARY_PATH="$RISCV/lib"

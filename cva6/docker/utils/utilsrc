@@ -1,0 +1,27 @@
+#!/bin/bash
+
+##### CORE-V Toolchain
+export RISCV=/opt/riscv/corev-openhw-gcc/
+
+export CV_SW_TOOLCHAIN=$RISCV
+export COREV_SW_TOOLCHAIN=$RISCV
+export PATH=$RISCV/bin:$PATH
+
+##### RISC-V Toolchain
+export RISCV_SW_TOOLCHAIN=$RISCV
+
+
+source /opt/utils/mentorrc
+source /opt/utils/synopsysrc
+source /opt/utils/cadencerc
+
+
+##### Locally installed tools
+
+export VERILATOR_ROOT=/opt/verilator-v5.008/
+export VERILATOR_INSTALL_DIR=$VERILATOR_ROOT
+export VERILATOR_BUILD_DIR=$VERILATOR_ROOT/verilator/
+export PATH=$VERILATOR_ROOT/bin:$PATH
+
+alias python=python3
+

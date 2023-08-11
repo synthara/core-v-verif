@@ -31,6 +31,6 @@ RUN echo "deb http://deb.debian.org/debian bullseye-backports main" >> /etc/apt/
 
 RUN echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-COPY utilsrc /opt/utils/utilsrc
+COPY utils /opt/utils
 
 RUN ln -sf bash /bin/sh

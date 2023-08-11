@@ -1,0 +1,12 @@
+#!/bin/bash
+
+##### Synopsys
+
+export SNPSLMD_LICENSE_FILE=
+export VCS_HOME=
+export VERDI_HOME=
+export SPYGLASS_HOME=
+export SYN_HOME=
+export FORMALITY_HOME=
+
+export PATH=$VCS_HOME/bin:$VERDI_HOME/bin:$SPYGLASS_HOME/bin:$SYN_HOME/bin:$FORMALITY_HOME/bin:$PATH
