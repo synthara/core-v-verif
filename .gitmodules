@@ -1,0 +1,4 @@
+[submodule "cv32e20"]
+	path = cv32e20
+	url = git@github.com:ValerioVenceslai-synthara/cv32e20-dv.git
+	branch = rec
