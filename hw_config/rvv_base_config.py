@@ -10,7 +10,9 @@ rvv_base = {
 
     "tb_files": [],
 
-    "tb_incdirs": [],
+    "tb_incdirs": [
+        "cv32e20/tb/uvmt/"
+    ],
 
     "tb_dependencies": [], #TODO The TB is based on the old DSL library so it needs ddl as well
 
