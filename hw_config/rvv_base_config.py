@@ -26,11 +26,8 @@ rvv_base = {
         "cv32e20/env/uvme/uvme_cv32e20_pkg.sv",
         "cv32e20/tb/uvmt/uvmt_cv32e20_pkg.sv",
         "cv32e20/tb/uvmt/uvmt_cv32e20_dut_wrap.sv",
-        "cv32e20/tb/uvmt/uvmt_cv32e20_tb.sv",
-        "cv32e20/tb/uvmt/uvmt_cv32e20_tb.sv",
-        "cv32e20/tb/uvmt/uvmt_cv32e20_dut_wrap.sv",
         "cv32e20/tb/uvmt/uvmt_cv32e20_interrupt_assert.sv",
-        "cv32e20/tb/uvmt/uvmt_cv32e20_debug_assert.sv",
+        "cv32e20/tb/uvmt/uvmt_cv32e20_debug_assert.sv"
     ],
 
     "tb_incdirs": [
