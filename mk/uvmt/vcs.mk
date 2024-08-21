@@ -29,7 +29,7 @@ ifeq ($(OS_IS_UBUNTU),Ubuntu)
 endif
 
 # Executables
-VCS              = $(CV_SIM_PREFIX) vcs
+VCS              = $(CV_SIM_PREFIX)vcs
 #SIMV             = $(CV_TOOL_PREFIX) simv -licwait 20
 SIMV             = simv -licwait 20
 DVE              = $(CV_TOOL_PREFIX) dve
@@ -89,7 +89,7 @@ endif
 # ADV_DEBUG=YES currently not supported
 ifeq ($(call IS_YES,$(GUI)),YES)
 VCS_GUI += -gui
-VCS_USER_COMPILE_ARGS += -debug_access+r
+VCS_USER_COMPILE_ARGS += -debug_access+r -kdb
 ifeq ($(call IS_YES,$(ADV_DEBUG)),YES)
 $(error ADV_DEBUG not yet supported by VCS )
 endif
