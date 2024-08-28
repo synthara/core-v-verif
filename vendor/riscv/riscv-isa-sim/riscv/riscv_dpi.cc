@@ -53,6 +53,12 @@ extern "C" void spike_set_default_params(const char *profile) {
   }
 }
 
+extern "C" void spike_store(reg_t paddr, uint32_t data) {
+  reg_t paddr_out = paddr;
+  
+  sim->get_core(0)->get_mmu()->mmu_t::store<uint32_t>(paddr_out, data); // Pass data directly
+}
+
 extern "C" void spike_set_param_uint64_t(const char *base, const char *name,
                                          uint64_t value) {
   params.set_uint64_t(base, name, value);
