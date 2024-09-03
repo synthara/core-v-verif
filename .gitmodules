@@ -1,9 +1,6 @@
 [submodule "core-v-cores/cv32e20"]
 	path = core-v-cores/cv32e20
 	url = https://github.com/synthara/rv2.git
-[submodule "cv32e20"]
-	path = cv32e20
-	url = https://github.com/ValerioVenceslai-synthara/cv32e20-dv.git
 [submodule "core-v-cores/coproc_XCS"]
 	path = core-v-cores/coproc_XCS
 	url = https://github.com/synthara/D-RVV-XCS_eXtension_Interface_Coprocessor_SIMD_ext.git
