@@ -209,6 +209,7 @@ VCS_COMP = $(VCS_COMP_FLAGS) \
 		$(QUIET) \
 		$(VCS_UVM_ARGS) \
 		$(VCS_USER_COMPILE_ARGS) \
+		-kdb \
 		+incdir+$(DV_UVME_PATH) \
 		+incdir+$(DV_UVMT_PATH) \
 		-f $(CV_CORE_MANIFEST) \
