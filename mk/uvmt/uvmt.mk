@@ -171,8 +171,25 @@ RTLSRC_VOPT_TB_TOP	:= $(addsuffix _vopt, $(RTLSRC_VLOG_TB_TOP))
 # RTL source files for the CV32E core
 # DESIGN_RTL_DIR is used by CV32E40P_MANIFEST file
 CV_CORE_PKG          := $(CORE_V_VERIF)/core-v-cores/$(CV_CORE_LC)
+
+#---------------------------------------------------------------------------------
+RVV_PATH            := $(CORE_V_VERIF)/core-v-cores/coproc_XCS
+DSL_PATH            := $(CORE_V_VERIF)/core-v-cores/coproc_XCS/src/dsl/
+export RVV_PATH     := $(RVV_PATH)
+export DSL_PATH     := $(DSL_PATH)
+#---------------------------------------------------------------------------------
+
 CV_CORE_MANIFEST     := $(CV_CORE_PKG)/$(CV_CORE_LC)_manifest.flist
 export DESIGN_RTL_DIR = $(CV_CORE_PKG)/rtl
+
+#---------------------------------------------------------------------------------    
+COPROC_PKG_FLIST := $(RVV_PATH)/filelist/rvv_base_rtl.fl
+COPROC_RTL_FLIST := $(RVV_PATH)/filelist/rvv_xcs_rtl.fl
+COPROC_WRP_FLIST := $(RVV_PATH)/filelist/rvv_xcs_wrp.fl
+export COPROC_PKG_FLIST := $(COPROC_PKG_FLIST)
+export COPROC_RTL_FLIST := $(COPROC_RTL_FLIST)
+export COPROC_WRP_FLIST := $(COPROC_WRP_FLIST)
+#---------------------------------------------------------------------------------
 
 RTLSRC_HOME   := $(CV_CORE_PKG)/rtl
 RTLSRC_INCDIR := $(RTLSRC_HOME)/include
