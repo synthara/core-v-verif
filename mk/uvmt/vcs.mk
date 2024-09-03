@@ -212,6 +212,10 @@ VCS_COMP = $(VCS_COMP_FLAGS) \
 		-kdb \
 		+incdir+$(DV_UVME_PATH) \
 		+incdir+$(DV_UVMT_PATH) \
+		+define+BASE \
+		-f $(COPROC_PKG_FLIST) \
+		-f $(COPROC_RTL_FLIST) \
+		-f $(COPROC_WRP_FLIST) \
 		-f $(CV_CORE_MANIFEST) \
 		$(VCS_FILE_LIST) \
 		$(UVM_PLUSARGS)
