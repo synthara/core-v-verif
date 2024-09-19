@@ -85,26 +85,26 @@ endif
 
 ###############################################################################
 # Generate command to clone or symlink the core RTL
-ifeq ($(CV_CORE_PATH),)
-  ifeq ($(CV_CORE_BRANCH), master)
-    TMP = git clone $(CV_CORE_REPO) $(CV_CORE_PKG)
-  else
-    TMP = git clone -b $(CV_CORE_BRANCH) --single-branch $(CV_CORE_REPO) $(CV_CORE_PKG)
-  endif
-
+#ifeq ($(CV_CORE_PATH),)
+#  ifeq ($(CV_CORE_BRANCH), master)
+#    TMP = git clone $(CV_CORE_REPO) $(CV_CORE_PKG)
+#  else
+#    TMP = git clone -b $(CV_CORE_BRANCH) --single-branch $(CV_CORE_REPO) $(CV_CORE_PKG)
+#  endif
+#
   # If a TAG is specified, the HASH is not considered
-  ifeq ($(CV_CORE_TAG), none)
-    ifeq ($(CV_CORE_HASH), head)
-      CLONE_CV_CORE_CMD = $(TMP)
-    else
-      CLONE_CV_CORE_CMD = $(TMP); cd $(CV_CORE_PKG); git checkout $(CV_CORE_HASH)
-    endif
-  else
-    CLONE_CV_CORE_CMD = $(TMP); cd $(CV_CORE_PKG); git checkout tags/$(CV_CORE_TAG)
-  endif
-else
-  CLONE_CV_CORE_CMD = ln -s $(CV_CORE_PATH) $(CV_CORE_PKG)
-endif
+#  ifeq ($(CV_CORE_TAG), none)
+#    ifeq ($(CV_CORE_HASH), head)
+#      CLONE_CV_CORE_CMD = $(TMP)
+#    else
+#      CLONE_CV_CORE_CMD = $(TMP); cd $(CV_CORE_PKG); git checkout $(CV_CORE_HASH)
+#    endif
+#  else
+#    CLONE_CV_CORE_CMD = $(TMP); cd $(CV_CORE_PKG); git checkout tags/$(CV_CORE_TAG)
+#  endif
+#else
+#  CLONE_CV_CORE_CMD = ln -s $(CV_CORE_PATH) $(CV_CORE_PKG)
+#endif
 
 ###############################################################################
 # Generate command to clone RISCV-DV (Google's random instruction generator)
