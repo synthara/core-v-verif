@@ -1369,7 +1369,7 @@
 #define MASK_LWU 0x707f
 #define MATCH_MADDR32 0xc4001077
 #define MASK_MADDR32 0xfe00707f
-#define MATCH_MAX 0xa006033
+#define MATCH_MAX 0x5a00302b
 #define MASK_MAX 0xfe00707f
 #define MATCH_MAXU 0xa007033
 #define MASK_MAXU 0xfe00707f
