@@ -66,6 +66,7 @@ SV_CMP_FLAGS ?= "+define+$(CV_CORE_UC)_ASSERT_ON"
 TIMESCALE    ?= -timescale 1ns/1ps
 UVM_PLUSARGS ?=
 
+CVE2_ENABLE_WB ?=   1
 # User selectable SystemVerilog simulator targets/rules
 CV_SIMULATOR ?= unsim
 SIMULATOR    ?= $(CV_SIMULATOR)
