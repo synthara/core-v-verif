@@ -26,7 +26,7 @@
  */
 class uvma_obi_memory_vp_virtual_printer_seq_c extends uvma_obi_memory_vp_base_seq_c;
 
-   localparam NUM_WORDS = 11;
+   localparam NUM_WORDS = 2;
 
    `uvm_object_utils_begin(uvma_obi_memory_vp_virtual_printer_seq_c)
    `uvm_object_utils_end
@@ -69,13 +69,14 @@ task uvma_obi_memory_vp_virtual_printer_seq_c::vp_body(uvma_obi_memory_mon_trn_c
    slv_rsp.orig_trn = mon_trn;
 
    if (mon_trn.access_type == UVMA_OBI_MEMORY_ACCESS_WRITE) begin
-      `uvm_info("VP_VSEQ", $sformatf("Call to virtual peripheral 'virtual_printer':\n%s", mon_trn.sprint()), UVM_DEBUG)
+      // `uvm_info("VP_VSEQ", $sformatf("Write call to virtual peripheral 'virtual_printer':\n%s", mon_trn.sprint()), UVM_LOW)
       // Allow $write as this acts as a UART/serial printer
       //@DVT_LINTER_WAIVER_START "SR20211012" disable SVTB.29.1.7
       $write("%c", mon_trn.data[7:0]);
       //@DVT_LINTER_WAIVER_END "SR20211012"
    end
    else if (mon_trn.access_type == UVMA_OBI_MEMORY_ACCESS_READ) begin
+      // `uvm_info("VP_VSEQ", $sformatf("Read call to virtual peripheral 'virtual_printer':\n%s", mon_trn.sprint()), UVM_LOW)
       // If reading from virtual printer, simply return 0
       slv_rsp.rdata =0;
    end
