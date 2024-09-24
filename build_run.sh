@@ -2,6 +2,7 @@
 TEST=${1:-"TEST=riscv_arithmetic_basic_test_0"}
 GUI=${2:-""}
 
+reset
 cd cv32e20/sim/uvmt
 make corev-dv CV_CORE=cv32e20 SIMULATOR=vcs 
 make comp CV_CORE=cv32e20 SIMULATOR=vcs 
