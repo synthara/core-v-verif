@@ -1,10 +1,13 @@
 #!/bin/bash
+
+clear 
 TEST=${1:-"TEST=riscv_arithmetic_basic_test_0"}
 GUI=${2:-""}
+REBUILD=${3:-""}
 
 cd cv32e20/sim/uvmt
-make corev-dv CV_CORE=cv32e20 SIMULATOR=vcs 
-make comp CV_CORE=cv32e20 SIMULATOR=vcs 
+make $REBUILD corev-dv CV_CORE=cv32e20 SIMULATOR=vcs 
+make $REBUILD comp CV_CORE=cv32e20 SIMULATOR=vcs 
 
 cd vcs_results/default
 test_name=$(echo "$TEST" | cut -d '=' -f 2)
