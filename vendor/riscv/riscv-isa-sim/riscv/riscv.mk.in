@@ -1068,6 +1068,7 @@ riscv_insn_ext_p_simd = \
 	khmx8 \
 	smin16 \
 	umin16 \
+	simdmax16 \
 	smax16 \
 	umax16 \
 	sclip16 \
