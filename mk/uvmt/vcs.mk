@@ -202,6 +202,7 @@ mk_vcs_dir:
 	$(MKDIR_P) $(VCS_DIR)
 
 # This special target is to support the special sanity target in the Common Makefile
+$(info DATAMOVER_FLIST is: $(DATAMOVER_FLIST))
 hello-world:
 	$(MAKE) test TEST=hello-world
 
@@ -216,6 +217,7 @@ VCS_COMP = $(VCS_COMP_FLAGS) \
 		-f $(COPROC_PKG_FLIST) \
 		-f $(COPROC_RTL_FLIST) \
 		-f $(COPROC_WRP_FLIST) \
+		-f $(DATAMOVER_FLIST) \
 		-f $(CV_CORE_MANIFEST) \
 		$(VCS_FILE_LIST) \
 		$(UVM_PLUSARGS)

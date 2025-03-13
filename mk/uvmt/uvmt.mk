@@ -175,7 +175,10 @@ CV_CORE_PKG          := $(CORE_V_VERIF)/core-v-cores/$(CV_CORE_LC)
 #---------------------------------------------------------------------------------
 RVV_PATH            := $(CORE_V_VERIF)/core-v-cores/coproc_XCS
 DSL_PATH            := $(CORE_V_VERIF)/core-v-cores/coproc_XCS/src/dsl/
+DMV_PATH            := $(CORE_V_VERIF)/core-v-cores/datamover/src
+$(info DMV_PATH is: $(DMV_PATH))
 export RVV_PATH     := $(RVV_PATH)
+export DMV_PATH	    := $(DMV_PATH)
 export DSL_PATH     := $(DSL_PATH)
 #---------------------------------------------------------------------------------
 
@@ -186,9 +189,13 @@ export DESIGN_RTL_DIR = $(CV_CORE_PKG)/rtl
 COPROC_PKG_FLIST := $(RVV_PATH)/filelist/rvv_base_rtl.fl
 COPROC_RTL_FLIST := $(RVV_PATH)/filelist/rvv_xcs_rtl.fl
 COPROC_WRP_FLIST := $(RVV_PATH)/filelist/rvv_xcs_wrp.fl
+$(info DMV_PATH is: $(DMV_PATH))
+DATAMOVER_FLIST  := $(DMV_PATH)/datamover.fl
+$(info DATAMOVER_FLIST is: $(DATAMOVER_FLIST))
 export COPROC_PKG_FLIST := $(COPROC_PKG_FLIST)
 export COPROC_RTL_FLIST := $(COPROC_RTL_FLIST)
 export COPROC_WRP_FLIST := $(COPROC_WRP_FLIST)
+export DATAMOVER_FLIST  := $(DATAMOVER_FLIST)
 #---------------------------------------------------------------------------------
 
 RTLSRC_HOME   := $(CV_CORE_PKG)/rtl

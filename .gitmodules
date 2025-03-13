@@ -7,3 +7,6 @@
 [submodule "cv32e20"]
 	path = cv32e20
 	url = git@github.com:synthara/cv32e20-dv.git
+[submodule "core-v-cores/datamover"]
+	path = core-v-cores/datamover
+	url = git@github.com:synthara/D-DMV-DATAMOVER.git

@@ -92,6 +92,7 @@ struct state_t
   csr_t_p mtval;
   csr_t_p mtvec;
   csr_t_p vec_mode;
+  csr_t_p cpuctrl;
   csr_t_p mcause;
   wide_counter_csr_t_p minstret;
   wide_counter_csr_t_p mcycle;
