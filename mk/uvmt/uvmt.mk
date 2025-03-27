@@ -175,7 +175,7 @@ CV_CORE_PKG          := $(CORE_V_VERIF)/core-v-cores/$(CV_CORE_LC)
 #---------------------------------------------------------------------------------
 RVV_PATH            := $(CORE_V_VERIF)/core-v-cores/coproc_XCS
 DSL_PATH            := $(CORE_V_VERIF)/core-v-cores/coproc_XCS/src/dsl/
-DMV_PATH            := $(CORE_V_VERIF)/core-v-cores/datamover/src
+DMV_PATH            := $(CORE_V_VERIF)/core-v-cores/smartLSU/src
 $(info DMV_PATH is: $(DMV_PATH))
 export RVV_PATH     := $(RVV_PATH)
 export DMV_PATH	    := $(DMV_PATH)
