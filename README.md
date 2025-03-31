@@ -1,3 +1,5 @@
+Launch the script `setup_env.sh` to download and compile the RISCV source code
+
 <!--
 
  Copyright 2020, 2021 OpenHW Group

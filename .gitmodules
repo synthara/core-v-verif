@@ -1,0 +1,7 @@
+[submodule "cv32e20"]
+	path = cv32e20
+	url = git@github.com:synthara/cv32e20-dv.git
+	branch = riscv-uvm-model
+[submodule "riscv-opcodes"]
+	path = riscv-opcodes
+	url = git@github.com:synthara/riscv-opcodes.git
