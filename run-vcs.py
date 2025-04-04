@@ -99,8 +99,16 @@ if __name__ == "__main__":
     os.environ["NOVAS_RC"] = "/opt/eda/synopsys/tools/verdi/V-2023.12/etc/custom_rovas.rc"
 
     VCS_HOME                      = "/opt/eda/synopsys/tools/vcs/latest"
-    RISCV_EXE_PREFIX              = f"/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/{march}/bin/riscv32-unknown-elf-"
-    CV_SW_TOOLCHAIN               = f"/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/{march}"
+    
+    # rv32im we need to use another toolchain due to this issue 
+    # https://docs.google.com/document/d/12kw4BVbr0RyuAvPRr8CXgR33H9AQaPSzJ4StCifH044/edit?tab=t.0#heading=h.afilqthi1rq8
+    if args.march == "rv32im":
+        RISCV_EXE_PREFIX              = f"/home/vcl/compiler/riscv-toolchain/riscv-gnu-toolchain/riscv/bin/riscv32-unknown-elf-"
+        CV_SW_TOOLCHAIN               = f"/home/vcl/compiler/riscv-toolchain/riscv-gnu-toolchain/riscv/"
+    else:
+        RISCV_EXE_PREFIX              = f"/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/{march}/bin/riscv32-unknown-elf-"
+        CV_SW_TOOLCHAIN               = f"/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/{march}"
+
     os.environ["VCS_HOME"]        = VCS_HOME
     os.environ["CV_SW_TOOLCHAIN"] = CV_SW_TOOLCHAIN
     os.environ["SPIKE_PATH"]      = f"{CORE_V_VERIF}/vendor/riscv/riscv-isa-sim"
