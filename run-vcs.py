@@ -100,9 +100,13 @@ if __name__ == "__main__":
 
     VCS_HOME                      = "/opt/eda/synopsys/tools/vcs/latest"
     
-    # rv32im we need to use another toolchain due to this issue 
+    if args.march not in ["rv32imc", "rv32im_zicsr"]:
+        print("\033[91m" + f"Error: {args.march} is not a valid march definition. Exiting..." + "\033[0m")
+        exit()
+    
+    # rv32im_zicsr we need to use another toolchain due to this issue 
     # https://docs.google.com/document/d/12kw4BVbr0RyuAvPRr8CXgR33H9AQaPSzJ4StCifH044/edit?tab=t.0#heading=h.afilqthi1rq8
-    if args.march == "rv32im":
+    if args.march == "rv32im_zicsr":
         RISCV_EXE_PREFIX              = f"/home/vcl/compiler/riscv-toolchain/riscv-gnu-toolchain/riscv/bin/riscv32-unknown-elf-"
         CV_SW_TOOLCHAIN               = f"/home/vcl/compiler/riscv-toolchain/riscv-gnu-toolchain/riscv/"
     else:
