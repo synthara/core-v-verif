@@ -29,12 +29,13 @@ package uvmc_rvfi_reference_model_pkg;
   import uvma_core_cntrl_pkg::*;
   import uvma_rvfi_pkg::*;
 
+  `include "uvmc_riscv_opcodes.sv"
   `include "uvma_rvfi_constants.sv"
   `include "uvma_rvfi_tdefs.sv"
   `include "uvmc_rvfi_reference_model_utils.sv"
   `include "uvmc_rvfi_reference_model.sv"
   `include "rvfi_spike.sv"
-  `include "uvmc_rvfi_spike.sv"
+  `include "uvmc_rvfi_spike.sv"  
 
 endpackage : uvmc_rvfi_reference_model_pkg
 

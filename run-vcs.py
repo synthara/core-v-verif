@@ -252,6 +252,17 @@ if __name__ == "__main__":
     # mkdir {CORE_V_VERIF}/log/ &&  \
     args_define = f"+define+{args.define}"
     vcs_compile_flags = "+define++define+CV32E20_RVFI+RVFI +define+CV32E20_TRACE_EXECUTION +USE_ISS -lca -sverilog +define+CV32E20_ASSERT_ON -ntb_opts uvm-1.2 -timescale=1ns/1ps -assert svaext -race=all -ignore unique_checks -full64 -reportstats -notice -line -fgp=multisocket +define+UVM"
+
+            # Trova il percorso assoluto del file inst.sverilog
+    inst_file_path = os.path.abspath(os.path.join(CORE_V_VERIF,"riscv-opcodes", "inst.sverilog"))
+
+    # Aggiungi il path della directory di inst.sverilog al +incdir
+    vcs_compile_flags += f" +incdir+{os.path.dirname(inst_file_path)} "
+
+    # Includi direttamente il file inst.sverilog nella compilazione
+    vcs_compile_flags += f" {inst_file_path} "
+    
+
     optional_flags = "-suppress=PCTI-L -suppress=UII-L -kdb=common_elab -debug_acc+all -debug_region+cell+encrypt -fgp=num_threads:8 -fgp=auto_affinity:allowHyperThreadCpu +gc+high_threshold+5 +UVM_NO_RELNOTES"
 
     ###################################################################

@@ -82,6 +82,9 @@ endclass : uvmc_rvfi_reference_model
 
 function void uvmc_rvfi_reference_model::get_and_set_cfg();
 
+   uvmc_riscv_opcodes opcode_detections = new();
+
+
    if (uvm_config_db#(uvma_core_cntrl_cfg_c)::get(this, "", "cfg", cfg)) begin
       `uvm_info("CFG", $sformatf("Found configuration handle:\n%s", cfg.sprint()), UVM_DEBUG)
       uvm_config_db#(uvma_core_cntrl_cfg_c)::set(this, "*", "cfg", cfg);
