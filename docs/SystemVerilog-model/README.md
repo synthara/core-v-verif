@@ -1,67 +1,19 @@
-# Core-v-verif changes by Paolo Borgis
+## Changes about estrai_opcode.py ( Only relevant changes are about this script )
 
-There are here all the modifications by Paolo Borgis on the core-v-verif repo. Every single file that has been changed or created is listed below:
+I created 7 dictionaries, one for each instruction format (R, I ,S, ecc.), and a separate dictionary which contain all these dictionaries (format_dicts)
 
-(base) [pab@RHEA core-v-verif]$ git status
-On branch riscv-uvm-model
-Your branch is up to date with 'origin/riscv-uvm-model'.
+Starting from line 214, this script is extracting from the json (instr_dict is "instr_dict.json" content) all the content and throw away all that is not variable fields, and create a dictionary named only_variable_fields that contains key = instruction's name and val = list of variable fields of that instruction
 
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-  (commit or discard the untracked or modified content in submodules)
-        modified:   cv32e20 (modified content, untracked content)
-        modified:   lib/uvm_components/uvmc_rvfi_reference_model/uvmc_rvfi_reference_model.sv
-        modified:   lib/uvm_components/uvmc_rvfi_reference_model/uvmc_rvfi_reference_model_pkg.sv
-        modified:   riscv-opcodes (untracked content)
-        modified:   run-vcs.py
+The script that starts from line 222 has been created in order to set the type of the instructions in the dictionary "only_variable_fields", in particular, based on the variable fields that every instruction own, it decide if this operation is R type, I type ecc.  Example: only_variable_fields = 'add': ['rd', 'rs1', 'rs2'], 'addi': ['rd', 'rs1', 'imm12'], ecc.     So this script will output instruction_format = 'add':R, 'addi':I, ecc.
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        docs/SystemVerilog-model/
-        lib/uvm_components/uvmc_rvfi_reference_model/uvmc_riscv_opcodes.sv
-
-no changes added to commit (use "git add" and/or "git commit -a")
-(base) [pab@RHEA core-v-verif]$ 
+The script that starts from line 248 is si creating the bitfield mapping. In this for, for each instruction, line 249 is deciding the instruction type (R, I, ecc.), and in line 250, based on the previous decision, I am extracting the varible fields of that particular type instruction. Then I am printing them in bitfield_mapping
+Example of fmt_name and fmt_dict for 'add' and 'addi':
+R
+{'rd': '11:7', 'rs1': '19:15', 'rs2': '24:20'}
+I
+{'rd': '11:7', 'rs1': '19:15', 'imm12': '31:20'}
 
 
+The script that starts from line 256 is filling the casez_dict which will contain all the stuff to be put in the case, in particular if the instruction name extracted from the file instr.sverilog (in opcode_dict) is equal to the one extracted from the json (in only_variable_fields)  (NB it has been used .lower because instruction were capital letter in inst.sverilog, while not in instr_dict.json). For the SB, S and UJ instruction I had to reconstruct the immediate, so I added an if for each of these cases.
 
-
-
-##  /core-v-verif/docs/SystemVerilog-model   (created)
-
-    This folder has been created to carry this README.md
-
-
-## /core-v-verif/cv32e20/tests/uvmt/base-tests/uvmt_cv32e20_base_test.sv (changed)
-
-    Line 215, in the function void uvmt_cv32e20_base_test_c, I changed the parameter of .count from 5 to 10000, this was done because when the uvm_error reporting count was higher than 5, the simulation would have stopped. I needed to see all the uvm_error reports in order to separate the data from the instruction in the readmemh.
-
-## /core-v-verif/lib/uvm_components/uvmc_rvfi_reference_model/uvmc_riscv_opcodes.sv  (created) (ex Mauro Cerone) 
-
-    This is the new class that I created with the python script estrai_opcode.py
-
-
-## /core-v-verif/lib/uvm_components/uvmc_rvfi_reference_model/uvmc_rvfi_reference_model_pkg.sv   (changed)
-
-    Line 32, I added `include "uvmc_riscv_opcodes.sv" in the pkg
-
-## /core-v-verif/lib/uvm_components/uvmc_rvfi_reference_model/uvmc_rvfi_reference_model.sv    (changed)
-
-    Line 85, I instantiated the object uvmc_riscv_opcodes opcode_detections = new(); of the new class in the function get_and_set_cfg() of the reference model
-
-## /core-v-verif/riscv-opcodes/config.json    (created)
-
-    This is the json file which provide some of the parameters to format the estrai_opcode python script
-
-## /core-v-verif/riscv-opcodes/estrai_opcode.py     (created)
-
-    Script python to autogenerate the new systemverilog class uvmc_riscv_opcodes.sv. The class is created by formatting a template with the json file's values and some dictionaries. The formatting is performed by Valerio'function. @Valerio I changed your function in some points: I added one more parameter in input for the default statement of the case, and I made some changes in the case formatting piece of code in order to make the begin and end of each case fit the code with a proper indentation. @Valerio, please let me know if the changes are ok and, if not, what could be done better in your opinion
-
-## /core-v-verif/run-vcs.py    (changed)
-
-    From line 243 to line 253, I added those lines to include the SystemVerilog file "inst.sverilog" in the compilation process for the VCS simulator
-
-
-
-## PS @Valerio There were some other minor changes, but I think they were of no interest, it was just me trying some stuff and see if it worked so before pushing I cleaned them. Also the simulation now is failing because of the uvm_error macro, which is reporting as an error every "instruction" which is not really an instruction, but a data from the memory (they are 5213 if you see the quit count report). The other instructions (I,M,C) are already separated and listed
+Output file is /core-v-verif/lib/uvm_components/uvmc_rvfi_reference_model/uvmc_riscv_pcodes.sv" and seems correct and is also compiling with run_vcs (It says failed cause of the uvm_error in the default case, but it's ok because M and C instructions are missing and datas in the memory are also present)

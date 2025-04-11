@@ -1,6 +1,4 @@
 
-    
-    
 `ifndef __uvmc_riscv_opcodes_SV__
 `define __uvmc_riscv_opcodes_SV__
 
@@ -9,7 +7,25 @@ import riscv_instr::*;
 class uvmc_riscv_opcodes extends uvm_component;
 
     string file_path = "";
-	int mem[int];
+    int mem[int];
+
+    bit [4:0] rd;
+    bit [4:0] rs1;
+    bit [4:0] rs2;
+    bit [11:0] imm12;
+    bit [6:0] imm12hi;
+    bit [4:0] imm12lo;
+    bit [6:0] bimm12hi;
+    bit [4:0] bimm12lo;
+    bit [19:0] jimm20;
+    bit [19:0] imm20;
+    bit [3:0] fm;
+    bit [3:0] pred;
+    bit [3:0] succ;
+    bit [11:0] imms;
+    bit [12:0] immsb;
+    bit [20:0] immuj;
+    
 
     `uvm_component_utils_begin(uvmc_riscv_opcodes)
     `uvm_component_utils_end
@@ -20,17 +36,17 @@ class uvmc_riscv_opcodes extends uvm_component;
 
         $display("[%0t]Creating uvmc_riscv_opcodes instance: %s", $time, name);
 
-		if ($value$plusargs("firmware=%s", file_path)) begin
-        	$display("Firmware file: %s", file_path);
+	    if ($value$plusargs("firmware=%s", file_path)) begin
+            $display("Firmware file: %s", file_path);
     	end else begin
-        	$fatal("No +firmware argument provided!");
+            $fatal("No +firmware argument provided!");
     	end
 
         $readmemh(file_path, mem);
 
-		foreach (mem[i]) begin
-   			decode_opcode(mem[i]);
-		end
+        foreach (mem[i]) begin
+            decode_opcode(mem[i]);
+        end
 
     endfunction : new
 
@@ -40,279 +56,354 @@ class uvmc_riscv_opcodes extends uvm_component;
 
     
         casez (instr)
-        	ADD : begin
+
+            ADD : begin
+
                 `uvm_info("ADD", "Instruction ADD detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	ADDI : begin
+            end
+
+            ADDI : begin
+
                 `uvm_info("ADDI", "Instruction ADDI detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	AND : begin
+            end
+
+            AND : begin
+
                 `uvm_info("AND", "Instruction AND detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	ANDI : begin
+            end
+
+            ANDI : begin
+
                 `uvm_info("ANDI", "Instruction ANDI detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	AUIPC : begin
+            end
+
+            AUIPC : begin
+
                 `uvm_info("AUIPC", "Instruction AUIPC detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                imm20 = instr[31:12];
 
-        	BEQ : begin
+            end
+
+            BEQ : begin
+
                 `uvm_info("BEQ", "Instruction BEQ detected successfully", UVM_LOW)
-        	end
+                bimm12hi = instr[31:25];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                bimm12lo = instr[11:7];
+                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 
-        	BGE : begin
+            end
+
+            BGE : begin
+
                 `uvm_info("BGE", "Instruction BGE detected successfully", UVM_LOW)
-        	end
+                bimm12hi = instr[31:25];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                bimm12lo = instr[11:7];
+                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 
-        	BGEU : begin
+            end
+
+            BGEU : begin
+
                 `uvm_info("BGEU", "Instruction BGEU detected successfully", UVM_LOW)
-        	end
+                bimm12hi = instr[31:25];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                bimm12lo = instr[11:7];
+                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 
-        	BLT : begin
+            end
+
+            BLT : begin
+
                 `uvm_info("BLT", "Instruction BLT detected successfully", UVM_LOW)
-        	end
+                bimm12hi = instr[31:25];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                bimm12lo = instr[11:7];
+                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 
-        	BLTU : begin
+            end
+
+            BLTU : begin
+
                 `uvm_info("BLTU", "Instruction BLTU detected successfully", UVM_LOW)
-        	end
+                bimm12hi = instr[31:25];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                bimm12lo = instr[11:7];
+                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 
-        	BNE : begin
+            end
+
+            BNE : begin
+
                 `uvm_info("BNE", "Instruction BNE detected successfully", UVM_LOW)
-        	end
+                bimm12hi = instr[31:25];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                bimm12lo = instr[11:7];
+                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 
-        	C_ADD : begin
-                `uvm_info("C_ADD", "Instruction C_ADD detected successfully", UVM_LOW)
-        	end
+            end
 
-        	C_ADDI : begin
-                `uvm_info("C_ADDI", "Instruction C_ADDI detected successfully", UVM_LOW)
-        	end
+            EBREAK : begin
 
-        	C_ADDI16SP : begin
-                `uvm_info("C_ADDI16SP", "Instruction C_ADDI16SP detected successfully", UVM_LOW)
-        	end
-
-        	C_ADDI4SPN : begin
-                `uvm_info("C_ADDI4SPN", "Instruction C_ADDI4SPN detected successfully", UVM_LOW)
-        	end
-
-        	C_AND : begin
-                `uvm_info("C_AND", "Instruction C_AND detected successfully", UVM_LOW)
-        	end
-
-        	C_ANDI : begin
-                `uvm_info("C_ANDI", "Instruction C_ANDI detected successfully", UVM_LOW)
-        	end
-
-        	C_BEQZ : begin
-                `uvm_info("C_BEQZ", "Instruction C_BEQZ detected successfully", UVM_LOW)
-        	end
-
-        	C_BNEZ : begin
-                `uvm_info("C_BNEZ", "Instruction C_BNEZ detected successfully", UVM_LOW)
-        	end
-
-        	C_EBREAK : begin
-                `uvm_info("C_EBREAK", "Instruction C_EBREAK detected successfully", UVM_LOW)
-        	end
-
-        	C_J : begin
-                `uvm_info("C_J", "Instruction C_J detected successfully", UVM_LOW)
-        	end
-
-        	C_JALR : begin
-                `uvm_info("C_JALR", "Instruction C_JALR detected successfully", UVM_LOW)
-        	end
-
-        	C_JR : begin
-                `uvm_info("C_JR", "Instruction C_JR detected successfully", UVM_LOW)
-        	end
-
-        	C_LI : begin
-                `uvm_info("C_LI", "Instruction C_LI detected successfully", UVM_LOW)
-        	end
-
-        	C_LUI : begin
-                `uvm_info("C_LUI", "Instruction C_LUI detected successfully", UVM_LOW)
-        	end
-
-        	C_LW : begin
-                `uvm_info("C_LW", "Instruction C_LW detected successfully", UVM_LOW)
-        	end
-
-        	C_LWSP : begin
-                `uvm_info("C_LWSP", "Instruction C_LWSP detected successfully", UVM_LOW)
-        	end
-
-        	C_MV : begin
-                `uvm_info("C_MV", "Instruction C_MV detected successfully", UVM_LOW)
-        	end
-
-        	C_NOP : begin
-                `uvm_info("C_NOP", "Instruction C_NOP detected successfully", UVM_LOW)
-        	end
-
-        	C_OR : begin
-                `uvm_info("C_OR", "Instruction C_OR detected successfully", UVM_LOW)
-        	end
-
-        	C_SUB : begin
-                `uvm_info("C_SUB", "Instruction C_SUB detected successfully", UVM_LOW)
-        	end
-
-        	C_SW : begin
-                `uvm_info("C_SW", "Instruction C_SW detected successfully", UVM_LOW)
-        	end
-
-        	C_SWSP : begin
-                `uvm_info("C_SWSP", "Instruction C_SWSP detected successfully", UVM_LOW)
-        	end
-
-        	C_XOR : begin
-                `uvm_info("C_XOR", "Instruction C_XOR detected successfully", UVM_LOW)
-        	end
-
-        	DIV : begin
-                `uvm_info("DIV", "Instruction DIV detected successfully", UVM_LOW)
-        	end
-
-        	DIVU : begin
-                `uvm_info("DIVU", "Instruction DIVU detected successfully", UVM_LOW)
-        	end
-
-        	EBREAK : begin
                 `uvm_info("EBREAK", "Instruction EBREAK detected successfully", UVM_LOW)
-        	end
 
-        	ECALL : begin
+            end
+
+            ECALL : begin
+
                 `uvm_info("ECALL", "Instruction ECALL detected successfully", UVM_LOW)
-        	end
 
-        	FENCE : begin
+            end
+
+            FENCE : begin
+
                 `uvm_info("FENCE", "Instruction FENCE detected successfully", UVM_LOW)
-        	end
+                fm = instr[31:28];
+                pred = instr[27:24];
+                succ = instr[23:20];
+                rs1 = instr[19:15];
+                rd = instr[11:7];
 
-        	JAL : begin
+            end
+
+            JAL : begin
+
                 `uvm_info("JAL", "Instruction JAL detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                jimm20 = instr[31:12];
+                immuj = {jimm20[19], jimm20[7:0], jimm20[8], jimm20[18:9], 1'b0};
 
-        	JALR : begin
+            end
+
+            JALR : begin
+
                 `uvm_info("JALR", "Instruction JALR detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	LB : begin
+            end
+
+            LB : begin
+
                 `uvm_info("LB", "Instruction LB detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	LBU : begin
+            end
+
+            LBU : begin
+
                 `uvm_info("LBU", "Instruction LBU detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	LH : begin
+            end
+
+            LH : begin
+
                 `uvm_info("LH", "Instruction LH detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	LHU : begin
+            end
+
+            LHU : begin
+
                 `uvm_info("LHU", "Instruction LHU detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	LUI : begin
+            end
+
+            LUI : begin
+
                 `uvm_info("LUI", "Instruction LUI detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                imm20 = instr[31:12];
 
-        	LW : begin
+            end
+
+            LW : begin
+
                 `uvm_info("LW", "Instruction LW detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	MUL : begin
-                `uvm_info("MUL", "Instruction MUL detected successfully", UVM_LOW)
-        	end
+            end
 
-        	MULH : begin
-                `uvm_info("MULH", "Instruction MULH detected successfully", UVM_LOW)
-        	end
+            OR : begin
 
-        	MULHSU : begin
-                `uvm_info("MULHSU", "Instruction MULHSU detected successfully", UVM_LOW)
-        	end
-
-        	MULHU : begin
-                `uvm_info("MULHU", "Instruction MULHU detected successfully", UVM_LOW)
-        	end
-
-        	OR : begin
                 `uvm_info("OR", "Instruction OR detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	ORI : begin
+            end
+
+            ORI : begin
+
                 `uvm_info("ORI", "Instruction ORI detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	REM : begin
-                `uvm_info("REM", "Instruction REM detected successfully", UVM_LOW)
-        	end
+            end
 
-        	REMU : begin
-                `uvm_info("REMU", "Instruction REMU detected successfully", UVM_LOW)
-        	end
+            SB : begin
 
-        	SB : begin
                 `uvm_info("SB", "Instruction SB detected successfully", UVM_LOW)
-        	end
+                imm12hi = instr[31:25];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                imm12lo = instr[11:7];
+                imms = {imm12hi, imm12lo};
 
-        	SH : begin
+            end
+
+            SH : begin
+
                 `uvm_info("SH", "Instruction SH detected successfully", UVM_LOW)
-        	end
+                imm12hi = instr[31:25];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                imm12lo = instr[11:7];
+                imms = {imm12hi, imm12lo};
 
-        	SLL : begin
+            end
+
+            SLL : begin
+
                 `uvm_info("SLL", "Instruction SLL detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	SLT : begin
+            end
+
+            SLT : begin
+
                 `uvm_info("SLT", "Instruction SLT detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	SLTI : begin
+            end
+
+            SLTI : begin
+
                 `uvm_info("SLTI", "Instruction SLTI detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	SLTIU : begin
+            end
+
+            SLTIU : begin
+
                 `uvm_info("SLTIU", "Instruction SLTIU detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	SLTU : begin
+            end
+
+            SLTU : begin
+
                 `uvm_info("SLTU", "Instruction SLTU detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	SRA : begin
+            end
+
+            SRA : begin
+
                 `uvm_info("SRA", "Instruction SRA detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	SRL : begin
+            end
+
+            SRL : begin
+
                 `uvm_info("SRL", "Instruction SRL detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	SUB : begin
+            end
+
+            SUB : begin
+
                 `uvm_info("SUB", "Instruction SUB detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	SW : begin
+            end
+
+            SW : begin
+
                 `uvm_info("SW", "Instruction SW detected successfully", UVM_LOW)
-        	end
+                imm12hi = instr[31:25];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                imm12lo = instr[11:7];
+                imms = {imm12hi, imm12lo};
 
-        	XOR : begin
+            end
+
+            XOR : begin
+
                 `uvm_info("XOR", "Instruction XOR detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
 
-        	XORI : begin
+            end
+
+            XORI : begin
+
                 `uvm_info("XORI", "Instruction XORI detected successfully", UVM_LOW)
-        	end
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
 
-        	default: `uvm_error("UNKNOWN", "Unknown instruction detected")
+            end
+
+            default: `uvm_error("UNKNOWN", "Unknown instruction detected")
+
         endcase
 
 
