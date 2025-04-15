@@ -25,6 +25,9 @@ class uvmc_riscv_opcodes extends uvm_component;
     bit [11:0] imms;
     bit [12:0] immsb;
     bit [20:0] immuj;
+    bit [31:0] pc;
+    bit [63:0] reg_mul;
+    bit [31:0] reg_file[31:0];
     
 
     `uvm_component_utils_begin(uvmc_riscv_opcodes)
@@ -63,6 +66,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] + reg_file[rs2];
 
             end
 
@@ -72,6 +76,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = reg_file[rs1] + imm12;
 
             end
 
@@ -81,6 +86,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] & reg_file[rs2];
 
             end
 
@@ -90,6 +96,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = reg_file[rs1] & imm12;
 
             end
 
@@ -98,6 +105,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 `uvm_info("AUIPC", "Instruction AUIPC detected successfully", UVM_LOW)
                 rd = instr[11:7];
                 imm20 = instr[31:12];
+                pc = pc + (imm20 << 12);
 
             end
 
@@ -109,6 +117,8 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs2 = instr[24:20];
                 bimm12lo = instr[11:7];
                 immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
+                if (reg_file[rs1] == reg_file[rs2])
+					pc = pc + immsb;
 
             end
 
@@ -120,6 +130,8 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs2 = instr[24:20];
                 bimm12lo = instr[11:7];
                 immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
+                if ($signed(reg_file[rs1]) >= $signed(reg_file[rs2]))
+					pc = pc + immsb;
 
             end
 
@@ -131,6 +143,8 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs2 = instr[24:20];
                 bimm12lo = instr[11:7];
                 immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
+                if (reg_file[rs1] >= reg_file[rs2])
+					pc = pc + immsb;
 
             end
 
@@ -142,6 +156,8 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs2 = instr[24:20];
                 bimm12lo = instr[11:7];
                 immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
+                if ($signed(reg_file[rs1]) < $signed(reg_file[rs2]))
+					pc = pc + immsb;
 
             end
 
@@ -153,6 +169,8 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs2 = instr[24:20];
                 bimm12lo = instr[11:7];
                 immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
+                if (reg_file[rs1] < reg_file[rs2])
+					pc = pc + immsb;
 
             end
 
@@ -164,18 +182,42 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs2 = instr[24:20];
                 bimm12lo = instr[11:7];
                 immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
+                if (reg_file[rs1] != reg_file[rs2])
+					pc = pc + immsb;
+
+            end
+
+            DIV : begin
+
+                `uvm_info("DIV", "Instruction DIV detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_file[rd] = $signed(reg_file[rs1]) / $signed(reg_file[rs2]);
+
+            end
+
+            DIVU : begin
+
+                `uvm_info("DIVU", "Instruction DIVU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] / reg_file[rs2];
 
             end
 
             EBREAK : begin
 
                 `uvm_info("EBREAK", "Instruction EBREAK detected successfully", UVM_LOW)
+                // ebreak;
 
             end
 
             ECALL : begin
 
                 `uvm_info("ECALL", "Instruction ECALL detected successfully", UVM_LOW)
+                // ecall;
 
             end
 
@@ -187,6 +229,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 succ = instr[23:20];
                 rs1 = instr[19:15];
                 rd = instr[11:7];
+                // fence;
 
             end
 
@@ -196,6 +239,8 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 jimm20 = instr[31:12];
                 immuj = {jimm20[19], jimm20[7:0], jimm20[8], jimm20[18:9], 1'b0};
+                reg_file[rd] = pc + 4;
+				pc = pc + immuj;
 
             end
 
@@ -205,6 +250,8 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = pc + 4;
+				pc = (reg_file[rs1] + imm12) & ~1;
 
             end
 
@@ -214,6 +261,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = {{24{mem[reg_file[rs1] + imm12][7]}}, mem[reg_file[rs1] + imm12][7:0]};;
 
             end
 
@@ -223,6 +271,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = {24'b0, mem[reg_file[rs1] + imm12][7:0]};
 
             end
 
@@ -232,6 +281,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = {{16{mem[reg_file[rs1] + imm12][15]}}, mem[reg_file[rs1] + imm12][15:0]};;
 
             end
 
@@ -241,6 +291,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = {16'b0, mem[reg_file[rs1] + imm12][15:0]};
 
             end
 
@@ -249,6 +300,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 `uvm_info("LUI", "Instruction LUI detected successfully", UVM_LOW)
                 rd = instr[11:7];
                 imm20 = instr[31:12];
+                reg_file[rd] = imm20 << 12;
 
             end
 
@@ -258,6 +310,51 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = mem[reg_file[rs1] + imm12];
+
+            end
+
+            MUL : begin
+
+                `uvm_info("MUL", "Instruction MUL detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_mul = $signed(reg_file[rs1]) * $signed(reg_file[rs2]);
+				reg_file[rd] = reg_mul[31:0];
+
+            end
+
+            MULH : begin
+
+                `uvm_info("MULH", "Instruction MULH detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_mul = $signed(reg_file[rs1]) * $signed(reg_file[rs2]);
+				reg_file[rd] = reg_mul[63:32];
+
+            end
+
+            MULHSU : begin
+
+                `uvm_info("MULHSU", "Instruction MULHSU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_mul = $signed(reg_file[rs1]) * reg_file[rs2];
+				reg_file[rd] = reg_mul[63:32];
+
+            end
+
+            MULHU : begin
+
+                `uvm_info("MULHU", "Instruction MULHU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_mul = reg_file[rs1] * reg_file[rs2];
+				reg_file[rd] = reg_mul[63:32];
 
             end
 
@@ -267,6 +364,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] | reg_file[rs2];
 
             end
 
@@ -276,6 +374,27 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = reg_file[rs1] | imm12;
+
+            end
+
+            REM : begin
+
+                `uvm_info("REM", "Instruction REM detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_file[rd] = $signed(reg_file[rs1]) % $signed(reg_file[rs2]);
+
+            end
+
+            REMU : begin
+
+                `uvm_info("REMU", "Instruction REMU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] % reg_file[rs2];
 
             end
 
@@ -287,6 +406,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs2 = instr[24:20];
                 imm12lo = instr[11:7];
                 imms = {imm12hi, imm12lo};
+                mem[reg_file[rs1] + imms][7:0] = reg_file[rs2];
 
             end
 
@@ -298,6 +418,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs2 = instr[24:20];
                 imm12lo = instr[11:7];
                 imms = {imm12hi, imm12lo};
+                mem[reg_file[rs1] + imms][15:0] = reg_file[rs2];
 
             end
 
@@ -307,6 +428,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] << reg_file[rs2];
 
             end
 
@@ -316,6 +438,10 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                if ($signed(reg_file[rs1]) < $signed(reg_file[rs2]))
+					reg_file[rd] = 1;
+				else
+					reg_file[rd] = 0;;
 
             end
 
@@ -325,6 +451,10 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                if ($signed(reg_file[rs1]) < $signed(imm12))
+					reg_file[rd] = 1;
+				else
+					reg_file[rd] = 0;;
 
             end
 
@@ -334,6 +464,10 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                if (reg_file[rs1] < imm12)
+					reg_file[rd] = 1;
+				else
+					reg_file[rd] = 0;;
 
             end
 
@@ -343,6 +477,10 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                if (reg_file[rs1] < reg_file[rs2])
+					reg_file[rd] = 1;
+				else
+					reg_file[rd] = 0;;
 
             end
 
@@ -352,6 +490,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] >>> reg_file[rs2];
 
             end
 
@@ -361,6 +500,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] >> reg_file[rs2];
 
             end
 
@@ -370,6 +510,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] - reg_file[rs2];
 
             end
 
@@ -381,6 +522,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs2 = instr[24:20];
                 imm12lo = instr[11:7];
                 imms = {imm12hi, imm12lo};
+                mem[reg_file[rs1] + imms] = reg_file[rs2];
 
             end
 
@@ -390,6 +532,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
+                reg_file[rd] = reg_file[rs1] ^ reg_file[rs2];
 
             end
 
@@ -399,6 +542,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
+                reg_file[rd] = reg_file[rs1] ^ imm12;
 
             end
 
