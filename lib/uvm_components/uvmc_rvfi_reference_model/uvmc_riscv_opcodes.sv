@@ -8,6 +8,7 @@ class uvmc_riscv_opcodes extends uvm_component;
 
     string file_path = "";
     int mem[int];
+    int incr;
 
     bit [4:0] rd;
     bit [4:0] rs1;
@@ -24,9 +25,12 @@ class uvmc_riscv_opcodes extends uvm_component;
     bit [3:0] succ;
     bit [11:0] imms;
     bit [12:0] immsb;
-    bit [20:0] immuj;
+    bit [31:0] immuj;
     bit [31:0] pc;
     bit [63:0] reg_mul;
+    bit [4:0] shamtw;
+    bit [11:0] csr;
+    bit [4:0] zimm5;
     bit [31:0] reg_file[31:0];
     
 
@@ -47,15 +51,22 @@ class uvmc_riscv_opcodes extends uvm_component;
 
         $readmemh(file_path, mem);
 
-        foreach (mem[i]) begin
-            decode_opcode(mem[i]);
+        for (int pc = 2147483648; pc < 2147552788; pc += incr) begin
+            logic [31:0] instruction;
+            instruction = {mem[pc+3][7:0], mem[pc+2][7:0], mem[pc+1][7:0], mem[pc][7:0]};
+            $display("Instruction: %h", instruction);
+            $display("Il valore del program counter di questa istruzione è: %h", pc);
+
+            pc = decode_opcode(instruction, pc);
         end
 
     endfunction : new
 
 
 
-    function void decode_opcode(bit[31:0] instr);
+    function bit [31:0] decode_opcode(bit[31:0] instr, bit[31:0] pc);
+
+        incr = 4;
 
     
         casez (instr)
@@ -105,7 +116,7 @@ class uvmc_riscv_opcodes extends uvm_component;
                 `uvm_info("AUIPC", "Instruction AUIPC detected successfully", UVM_LOW)
                 rd = instr[11:7];
                 imm20 = instr[31:12];
-                pc = pc + (imm20 << 12);
+                reg_file[rd] = pc + (imm20 << 12);
 
             end
 
@@ -187,6 +198,66 @@ class uvmc_riscv_opcodes extends uvm_component;
 
             end
 
+            CSRRC : begin
+
+                `uvm_info("CSRRC", "Instruction CSRRC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                csr = instr[31:20];
+                //csrrc;
+
+            end
+
+            CSRRCI : begin
+
+                `uvm_info("CSRRCI", "Instruction CSRRCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                csr = instr[31:20];
+                zimm5 = instr[19:15];
+                //csrrci;
+
+            end
+
+            CSRRS : begin
+
+                `uvm_info("CSRRS", "Instruction CSRRS detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                csr = instr[31:20];
+                //csrrs;
+
+            end
+
+            CSRRSI : begin
+
+                `uvm_info("CSRRSI", "Instruction CSRRSI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                csr = instr[31:20];
+                zimm5 = instr[19:15];
+                //csrrsi;
+
+            end
+
+            CSRRW : begin
+
+                `uvm_info("CSRRW", "Instruction CSRRW detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                csr = instr[31:20];
+                //csrrw;
+
+            end
+
+            CSRRWI : begin
+
+                `uvm_info("CSRRWI", "Instruction CSRRWI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                csr = instr[31:20];
+                zimm5 = instr[19:15];
+                //csrrwi;
+
+            end
+
             DIV : begin
 
                 `uvm_info("DIV", "Instruction DIV detected successfully", UVM_LOW)
@@ -238,7 +309,8 @@ class uvmc_riscv_opcodes extends uvm_component;
                 `uvm_info("JAL", "Instruction JAL detected successfully", UVM_LOW)
                 rd = instr[11:7];
                 jimm20 = instr[31:12];
-                immuj = {jimm20[19], jimm20[7:0], jimm20[8], jimm20[18:9], 1'b0};
+                immuj = {{11{jimm20[19]}},jimm20[19], jimm20[7:0], jimm20[8], jimm20[18:9], 1'b0};
+                incr = 0;
                 reg_file[rd] = pc + 4;
 				pc = pc + immuj;
 
@@ -432,6 +504,16 @@ class uvmc_riscv_opcodes extends uvm_component;
 
             end
 
+            SLLI : begin
+
+                `uvm_info("SLLI", "Instruction SLLI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                shamtw = instr[24:20];
+                reg_file[rd] = reg_file[rs1] << shamtw;
+
+            end
+
             SLT : begin
 
                 `uvm_info("SLT", "Instruction SLT detected successfully", UVM_LOW)
@@ -494,6 +576,16 @@ class uvmc_riscv_opcodes extends uvm_component;
 
             end
 
+            SRAI : begin
+
+                `uvm_info("SRAI", "Instruction SRAI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                shamtw = instr[24:20];
+                reg_file[rd] = reg_file[rs1] >>> shamtw;
+
+            end
+
             SRL : begin
 
                 `uvm_info("SRL", "Instruction SRL detected successfully", UVM_LOW)
@@ -501,6 +593,16 @@ class uvmc_riscv_opcodes extends uvm_component;
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_file[rd] = reg_file[rs1] >> reg_file[rs2];
+
+            end
+
+            SRLI : begin
+
+                `uvm_info("SRLI", "Instruction SRLI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                shamtw = instr[24:20];
+                reg_file[rd] = reg_file[rs1] >> shamtw;
 
             end
 
@@ -546,10 +648,16 @@ class uvmc_riscv_opcodes extends uvm_component;
 
             end
 
-            default: `uvm_error("UNKNOWN", "Unknown instruction detected")
+            default: begin
+                `uvm_error("UNKNOWN", "Unknown instruction detected")
+                    incr = 2;
+                end
+
 
         endcase
 
+
+        return pc;
 
     endfunction : decode_opcode
 
