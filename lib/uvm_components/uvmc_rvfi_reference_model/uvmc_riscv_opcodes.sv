@@ -9,6 +9,8 @@ class uvmc_riscv_opcodes extends uvm_component;
     string file_path = "";
     int mem[int];
     int incr;
+
+    virtual uvma_clknrst_if clknrst_vif;
  
     bit [4:0] rd;
     bit [4:0] rt;
@@ -111,16 +113,19 @@ class uvmc_riscv_opcodes extends uvm_component;
     bit [2:0] c_sreg2;
     
     //Added by hand (not present in arg_lut.csv)
+    bit [31:0] instruction;
     bit [31:0] reg_file[31:0];
     bit [31:0] csr_reg_file[4095:0];
     bit [11:0] imms;
     bit [12:0] immsb; 
     bit [31:0] immuj; 
-    bit [31:0] pc; 
+    bit [31:0] pc = 32'h80000000; 
     bit [63:0] reg_mul;
     bit [31:0] imm12_ext;
     bit [31:0] imms_ext;
     bit [31:0] immsb_ext;
+
+    bit SENSE_CLK = 1'b1;
 
     `uvm_component_utils_begin(uvmc_riscv_opcodes)
     `uvm_component_utils_end
@@ -144,17 +149,34 @@ class uvmc_riscv_opcodes extends uvm_component;
         csr_reg_file[12'hF12] = 32'h00000023; // marchid
         csr_reg_file[12'hF13] = 32'h00000000; // mimpid
 
-        for (int pc = 2147483648; pc < 2147552788; pc += incr) begin
-            bit [31:0] instruction;
-            instruction = {mem[pc+3][7:0], mem[pc+2][7:0], mem[pc+1][7:0], mem[pc][7:0]};
-            $display("Instruction: %h", instruction);
-            $display("Il valore del program counter di questa istruzione è: %h", pc);
-
-            pc = decode_opcode(instruction, pc);
-        end
+        
 
     endfunction : new
 
+    
+    task run_phase(uvm_phase phase);
+
+        super.run_phase(phase);
+
+        if (!uvm_config_db#(virtual uvma_clknrst_if)::get(null, "*.env.clknrst_agent", "vif", clknrst_vif)) begin
+            `uvm_fatal("NOCLOCK", "Cannot get clknrst_vif from config_db")
+        end
+
+        fork
+            begin : fetch_decode
+                forever begin
+                    @(posedge clknrst_vif.clk);
+
+                    if (!clknrst_vif.reset_n) begin
+                        pc = 0;
+                    end else begin
+                        instruction = {mem[pc+3][7:0], mem[pc+2][7:0], mem[pc+1][7:0], mem[pc][7:0]};
+                        pc = decode_opcode(instruction, pc);
+                    end
+                end
+            end
+        join_none
+    endtask
 
 
     function bit [31:0] decode_opcode(bit[31:0] instr, bit[31:0] pc);
@@ -792,6 +814,8 @@ class uvmc_riscv_opcodes extends uvm_component;
 
 
         reg_file[0] = 32'b0;
+
+        pc += incr;
 
         return pc;
 
