@@ -3,15 +3,18 @@
 `define __uvmc_riscv_opcodes_SV__
 
 import riscv_instr::*;
+import uvma_rvfi_pkg::*;
 
 class uvmc_riscv_opcodes extends uvm_component;
 
     string file_path = "";
     int mem[int];
     int incr;
+    int order = 0;
 
     virtual uvma_clknrst_if clknrst_vif;
- 
+    uvma_rvfi_mode mode = 3;
+
     bit [4:0] rd;
     bit [4:0] rt;
     bit [4:0] rs1;
@@ -124,8 +127,12 @@ class uvmc_riscv_opcodes extends uvm_component;
     bit [31:0] imm12_ext;
     bit [31:0] imms_ext;
     bit [31:0] immsb_ext;
+    bit [31:0] pc_before;
 
     bit SENSE_CLK = 1'b1;
+
+    uvma_rvfi_instr_seq_item_c#(32, 32) rvfi_instr_seq_item;
+    uvm_analysis_port#(uvma_rvfi_instr_seq_item_c#(32, 32)) rvfi_ap;
 
     `uvm_component_utils_begin(uvmc_riscv_opcodes)
     `uvm_component_utils_end
@@ -148,6 +155,7 @@ class uvmc_riscv_opcodes extends uvm_component;
         csr_reg_file[12'h301] = 32'h40101104; // misa (RV32IMCU)
         csr_reg_file[12'hF12] = 32'h00000023; // marchid
         csr_reg_file[12'hF13] = 32'h00000000; // mimpid
+        rvfi_ap = new("rvfi_ap", this);
 
         
 
@@ -181,7 +189,17 @@ class uvmc_riscv_opcodes extends uvm_component;
 
     function bit [31:0] decode_opcode(bit[31:0] instr, bit[31:0] pc);
 
+        rvfi_instr_seq_item = uvma_rvfi_instr_seq_item_c#(32,32)::type_id::create("rvfi_instr_seq_item", this);
+
+        rvfi_instr_seq_item.mode = mode;
+
         incr = 4;
+
+        pc_before = pc;
+
+        rs1 = 5'b0;
+        rs2 = 5'b0;
+        rd  = 5'b0;
 
     
         casez (instr)
@@ -816,6 +834,21 @@ class uvmc_riscv_opcodes extends uvm_component;
         reg_file[0] = 32'b0;
 
         pc += incr;
+
+        
+        rvfi_instr_seq_item.order     = order++;
+        rvfi_instr_seq_item.insn      = instruction;
+        rvfi_instr_seq_item.rs1_addr  = rs1;
+        rvfi_instr_seq_item.rs1_rdata = reg_file[rs1];
+        rvfi_instr_seq_item.rs2_addr  = rs2;
+        rvfi_instr_seq_item.rs2_rdata = reg_file[rs2];
+        rvfi_instr_seq_item.rd1_addr  = rd;
+        rvfi_instr_seq_item.rd1_wdata = reg_file[rd];
+        rvfi_instr_seq_item.pc_rdata  = pc_before;
+        rvfi_instr_seq_item.pc_wdata  = pc;
+
+
+        rvfi_ap.write(rvfi_instr_seq_item);
 
         return pc;
 
