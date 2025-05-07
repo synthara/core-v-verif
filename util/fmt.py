@@ -99,6 +99,7 @@ cd {vcs_out_dir} &&  \
 {test_define} \
 -f {CORE_RTL_PATH}/cv32e20_manifest.flist \
 -f {CORE_TB_PATH}/tb/uvmt/uvmt_cv32e20.flist \
+{CORE_V_VERIF}/util/uvmt_cv32e20_model_test.sv \
 {optional_flags} \
 -top uvmt_{cv_core}_tb -l vcs.log
 """

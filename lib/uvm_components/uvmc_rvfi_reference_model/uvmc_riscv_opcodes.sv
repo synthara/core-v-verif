@@ -5,7 +5,7 @@
 import riscv_instr::*;
 import uvma_rvfi_pkg::*;
 
-class uvmc_riscv_opcodes extends uvm_component;
+class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
 
     string file_path = "";
     int mem[int];
@@ -132,10 +132,19 @@ class uvmc_riscv_opcodes extends uvm_component;
     bit SENSE_CLK = 1'b1;
 
     uvma_rvfi_instr_seq_item_c#(32, 32) rvfi_instr_seq_item;
-    uvm_analysis_port#(uvma_rvfi_instr_seq_item_c#(32, 32)) rvfi_ap;
 
     `uvm_component_utils_begin(uvmc_riscv_opcodes)
     `uvm_component_utils_end
+
+    function uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) step (int i, uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t);
+        `uvm_info(get_type_name(), "Dummy step function called", UVM_DEBUG)
+    endfunction 
+
+    function void write_rvfi_instr(uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t);
+    //    uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t_reference_model = step(1, t);
+    //    m_analysis_port.write(t);
+        `uvm_info(get_type_name(), "Dummy write_rvfi_instr function called", UVM_DEBUG)
+    endfunction : write_rvfi_instr
 
     function new(string name="uvmc_riscv_opcodes", uvm_component parent=null);
 
@@ -155,7 +164,6 @@ class uvmc_riscv_opcodes extends uvm_component;
         csr_reg_file[12'h301] = 32'h40101104; // misa (RV32IMCU)
         csr_reg_file[12'hF12] = 32'h00000023; // marchid
         csr_reg_file[12'hF13] = 32'h00000000; // mimpid
-        rvfi_ap = new("rvfi_ap", this);
 
         
 
@@ -848,7 +856,8 @@ class uvmc_riscv_opcodes extends uvm_component;
         rvfi_instr_seq_item.pc_wdata  = pc;
 
 
-        rvfi_ap.write(rvfi_instr_seq_item);
+        // write_rvfi_instr(rvfi_instr_seq_item);
+        m_analysis_port.write(rvfi_instr_seq_item);
 
         return pc;
 

@@ -104,8 +104,8 @@ task uvmc_rvfi_scoreboard_c::run_phase(uvm_phase phase);
     sim_finished = 0;
     phase.raise_objection(this);
     while (!sim_finished) begin
-        @(core.size > 0)
-        while (core.size > 0 && !sim_finished)
+        @(core.size > 0) //TODO: revert and put reference_model.size
+        while (core.size > 0 && !sim_finished) //TODO: revert and put reference_model.size
         begin
             t_reference_model = reference_model.pop_front();
             t_core = core.pop_front();
