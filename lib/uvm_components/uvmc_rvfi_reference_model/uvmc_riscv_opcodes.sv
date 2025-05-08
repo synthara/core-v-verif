@@ -122,29 +122,16 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
     bit [11:0] imms;
     bit [12:0] immsb; 
     bit [31:0] immuj; 
-    bit [31:0] pc = 32'h80000000; 
+    bit [31:0] pc; 
     bit [63:0] reg_mul;
     bit [31:0] imm12_ext;
     bit [31:0] imms_ext;
     bit [31:0] immsb_ext;
     bit [31:0] pc_before;
 
-    bit SENSE_CLK = 1'b1;
-
     uvma_rvfi_instr_seq_item_c#(32, 32) rvfi_instr_seq_item;
-
     `uvm_component_utils_begin(uvmc_riscv_opcodes)
     `uvm_component_utils_end
-
-    function uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) step (int i, uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t);
-        `uvm_info(get_type_name(), "Dummy step function called", UVM_DEBUG)
-    endfunction 
-
-    function void write_rvfi_instr(uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t);
-    //    uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t_reference_model = step(1, t);
-    //    m_analysis_port.write(t);
-        `uvm_info(get_type_name(), "Dummy write_rvfi_instr function called", UVM_DEBUG)
-    endfunction : write_rvfi_instr
 
     function new(string name="uvmc_riscv_opcodes", uvm_component parent=null);
 
@@ -165,35 +152,38 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
         csr_reg_file[12'hF12] = 32'h00000023; // marchid
         csr_reg_file[12'hF13] = 32'h00000000; // mimpid
 
-        
-
     endfunction : new
 
-    
-    task run_phase(uvm_phase phase);
+    function void build_phase(uvm_phase phase);
+       st_core_cntrl_cfg st;
 
-        super.run_phase(phase);
+       super.build_phase(phase);
 
-        if (!uvm_config_db#(virtual uvma_clknrst_if)::get(null, "*.env.clknrst_agent", "vif", clknrst_vif)) begin
-            `uvm_fatal("NOCLOCK", "Cannot get clknrst_vif from config_db")
+       st = cfg.to_struct();
+
+        if (st.boot_addr_valid) begin
+            pc = st.boot_addr;
+            `uvm_info("Boot_addr: %h", st.boot_addr, UVM_LOW)
+        end else begin
+            `uvm_fatal("Boot_addr not valid, using default value", UVM_LOW)
         end
+        
+    endfunction : build_phase
 
-        fork
-            begin : fetch_decode
-                forever begin
-                    @(posedge clknrst_vif.clk);
+    
+    function uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) step (int i, uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t);
+        instruction = {mem[pc+3][7:0], mem[pc+2][7:0], mem[pc+1][7:0], mem[pc][7:0]};
+        pc = decode_opcode(instruction, pc);
+        `uvm_info(get_type_name(), "Dummy step function called", UVM_DEBUG)
+    endfunction 
 
-                    if (!clknrst_vif.reset_n) begin
-                        pc = 0;
-                    end else begin
-                        instruction = {mem[pc+3][7:0], mem[pc+2][7:0], mem[pc+1][7:0], mem[pc][7:0]};
-                        pc = decode_opcode(instruction, pc);
-                    end
-                end
-            end
-        join_none
-    endtask
+    function void write_rvfi_instr(uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t);
+        uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t_reference_model = step(1, t);
+        m_analysis_port.write(t);
+        `uvm_info(get_type_name(), "Dummy write_rvfi_instr function called", UVM_DEBUG)
+    endfunction : write_rvfi_instr
 
+    
 
     function bit [31:0] decode_opcode(bit[31:0] instr, bit[31:0] pc);
 
@@ -855,9 +845,6 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
         rvfi_instr_seq_item.pc_rdata  = pc_before;
         rvfi_instr_seq_item.pc_wdata  = pc;
 
-
-        // write_rvfi_instr(rvfi_instr_seq_item);
-        m_analysis_port.write(rvfi_instr_seq_item);
 
         return pc;
 
