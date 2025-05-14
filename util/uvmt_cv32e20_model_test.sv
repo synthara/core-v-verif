@@ -20,7 +20,7 @@ class uvmt_cv32e20_model_test_c extends uvmt_cv32e20_firmware_test_c;
         super.build_phase(phase);
 
         `uvm_info("model_test", "Overriding Reference Model with UVM model", UVM_NONE)
-        set_type_override_by_type(uvmc_rvfi_reference_model#()::get_type(), uvmc_riscv_opcodes#()::get_type());
+        set_type_override_by_type(uvmc_rvfi_reference_model#()::get_type(), uvmc_rvfi_decoder_model#()::get_type());
 
     endfunction: build_phase
 
@@ -119,8 +119,8 @@ class uvmt_cv32e20_model_test_dual_ref_c extends uvmt_cv32e20_firmware_test_c;
         super.build_phase(phase);
 
         // Override the first reference model with spike
-        uvmc_rvfi_reference_model::type_id::set_inst_override(uvmc_riscv_opcodes::get_type(), "uvm_test_top.env.reference_model");
-        // Override the second reference model with the uvmc_riscv_opcodes
+        uvmc_rvfi_reference_model::type_id::set_inst_override(uvmc_rvfi_decoder_model::get_type(), "uvm_test_top.env.reference_model");
+        // Override the second reference model with the uvmc_rvfi_decoder_model
         uvmc_rvfi_reference_model::type_id::set_inst_override(uvmc_rvfi_spike::get_type(), "uvm_test_top.env.reference_model2");
 
     endfunction: build_phase

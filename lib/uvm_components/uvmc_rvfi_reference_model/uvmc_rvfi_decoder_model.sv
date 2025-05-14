@@ -1,11 +1,11 @@
 
-`ifndef __uvmc_riscv_opcodes_SV__
-`define __uvmc_riscv_opcodes_SV__
+`ifndef __uvmc_rvfi_decoder_model_SV__
+`define __uvmc_rvfi_decoder_model_SV__
 
 import riscv_instr::*;
 import uvma_rvfi_pkg::*;
 
-class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
+class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
     string file_path = "";
     int mem[int];
@@ -130,23 +130,23 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
     bit [31:0] pc_before;
     bit [31:0] c_imm_ext;
     bit [31:0] addr;
-    bit [31:0] reg_rs1_prec;
-    bit [31:0] reg_rs2_prec;
+    bit [31:0] reg_rs1_prev;
+    bit [31:0] reg_rs2_prev;
 
 
     uvma_rvfi_instr_seq_item_c#(32, 32) rvfi_instr_seq_item;
-    `uvm_component_utils_begin(uvmc_riscv_opcodes)
+    `uvm_component_utils_begin(uvmc_rvfi_decoder_model)
     `uvm_component_utils_end
 
-    function new(string name="uvmc_riscv_opcodes", uvm_component parent=null);
+    function new(string name="uvmc_rvfi_decoder_model", uvm_component parent=null);
 
         super.new(name, parent);
 
-        $display("[%0t]Creating uvmc_riscv_opcodes instance: %s", $time, name);
+        $display("[%0t]Creating uvmc_rvfi_decoder_model instance: %s", $time, name);
 
 	    if ($value$plusargs("firmware=%s", file_path)) begin
             $display("Firmware file: %s", file_path);
-    	end else begin
+        end else begin
             $fatal("No +firmware argument provided!");
     	end
 
@@ -160,11 +160,11 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
     endfunction : new
 
     function void build_phase(uvm_phase phase);
-       st_core_cntrl_cfg st;
+        st_core_cntrl_cfg st;
 
-       super.build_phase(phase);
+        super.build_phase(phase);
 
-       st = cfg.to_struct();
+        st = cfg.to_struct();
 
         if (st.boot_addr_valid) begin
             pc = st.boot_addr;
@@ -211,8 +211,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
 
                 `uvm_info("C_JALR", "Instruction C_JALR detected successfully", UVM_LOW)
                 c_rs1_n0 = instr[11:7];
-                reg_rs1_prec = reg_file[c_rs1_n0];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[c_rs1_n0];
+				reg_rs2_prev = reg_file[rs2];
 				pc = (reg_file[c_rs1_n0]) & ~1;
 				reg_file[1] = pc_before + 2;
 				rs1 = c_rs1_n0;
@@ -226,8 +226,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_ADD", "Instruction C_ADD detected successfully", UVM_LOW)
                 rd_rs1_n0 = instr[11:7];
                 c_rs2_n0 = instr[6:2];
-                reg_rs1_prec = reg_file[rd_rs1_n0];
-				reg_rs2_prec = reg_file[c_rs2_n0];
+                reg_rs1_prev = reg_file[rd_rs1_n0];
+				reg_rs2_prev = reg_file[c_rs2_n0];
 				reg_file[rd_rs1_n0] = reg_file[rd_rs1_n0] + reg_file[c_rs2_n0];
 				rd = rd_rs1_n0;
 				rs1 = rd_rs1_n0;
@@ -242,8 +242,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] + reg_file[rs2];
 
             end
@@ -254,8 +254,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				imm12_ext = {{20{imm12[11]}}, imm12};
 				reg_file[rd] = reg_file[rs1] + imm12_ext;
 
@@ -267,8 +267,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] & reg_file[rs2];
 
             end
@@ -279,8 +279,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				imm12_ext = {{20{imm12[11]}}, imm12};
 				reg_file[rd] = reg_file[rs1] & imm12_ext;
 
@@ -291,8 +291,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("AUIPC", "Instruction AUIPC detected successfully", UVM_LOW)
                 rd = instr[11:7];
                 imm20 = instr[31:12];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = pc + (imm20 << 12);
 
             end
@@ -304,9 +304,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
                 bimm12lo = instr[11:7];
-                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 				immsb_ext = {{19{immsb[12]}}, immsb};
 				if (reg_file[rs1] == reg_file[rs2]) begin
 					pc = pc + immsb_ext;
@@ -322,9 +322,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
                 bimm12lo = instr[11:7];
-                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 				immsb_ext = {{19{immsb[12]}}, immsb};
 				if ($signed(reg_file[rs1]) >= $signed(reg_file[rs2])) begin
 					pc = pc + immsb_ext;
@@ -340,9 +340,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
                 bimm12lo = instr[11:7];
-                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 				immsb_ext = {{19{immsb[12]}}, immsb};
 				if (reg_file[rs1] >= reg_file[rs2]) begin
 					pc = pc + immsb_ext;
@@ -358,9 +358,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
                 bimm12lo = instr[11:7];
-                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 				immsb_ext = {{19{immsb[12]}}, immsb};
 				if ($signed(reg_file[rs1]) < $signed(reg_file[rs2])) begin
 					pc = pc + immsb_ext;
@@ -376,9 +376,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
                 bimm12lo = instr[11:7];
-                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 				immsb_ext = {{19{immsb[12]}}, immsb};
 				if (reg_file[rs1] < reg_file[rs2]) begin
 					pc = pc + immsb_ext;
@@ -394,9 +394,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
                 bimm12lo = instr[11:7];
-                immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				immsb = {bimm12hi[6], bimm12lo[0], bimm12hi[5:0], bimm12lo[4:1], 1'b0};
 				immsb_ext = {{19{immsb[12]}}, immsb};
 				if (reg_file[rs1] != reg_file[rs2]) begin
 					pc = pc + immsb_ext;
@@ -411,8 +411,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_nzimm6lo = instr[6:2];
                 c_nzimm6hi = instr[12];
                 rd_rs1_n0 = instr[11:7];
-                reg_rs1_prec = reg_file[rd_rs1_n0];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rd_rs1_n0];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {{26{c_nzimm6hi}}, c_nzimm6hi, c_nzimm6lo};
 				reg_file[rd_rs1_n0] = reg_file[rd_rs1_n0] + c_imm_ext;
 				rd = rd_rs1_n0;
@@ -427,8 +427,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_nzimm10hi = instr[12];
                 c_nzimm10lo = instr[6:2];
                 rs1 = 2;
-				reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+				reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {{22{c_nzimm10hi}}, c_nzimm10hi, c_nzimm10lo[2:1], c_nzimm10lo[3], c_nzimm10lo[0], c_nzimm10lo[4], 4'b0000};
 				reg_file[2] = reg_file[2] + c_imm_ext;
 				rd = 2;
@@ -441,8 +441,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_ADDI4SPN", "Instruction C_ADDI4SPN detected successfully", UVM_LOW)
                 c_nzuimm10 = instr[12:5];
                 rd_p = instr[4:2];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {22'b0, c_nzuimm10[5:2], c_nzuimm10[7:6], c_nzuimm10[0], c_nzuimm10[1], 2'b00};
 				reg_file[rd_p+8] = reg_file[2] + c_imm_ext;
 				rs1 = 2;
@@ -456,8 +456,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_AND", "Instruction C_AND detected successfully", UVM_LOW)
                 rs2_p = instr[4:2];
                 rd_rs1_p = instr[9:7];
-                reg_rs1_prec = reg_file[rd_rs1_p+8];
-				reg_rs2_prec = reg_file[rs2_p+8];
+                reg_rs1_prev = reg_file[rd_rs1_p+8];
+				reg_rs2_prev = reg_file[rs2_p+8];
 				reg_file[rd_rs1_p+8] = reg_file[rd_rs1_p+8] & reg_file[rs2_p+8];
 				rs1 = rd_rs1_p + 8;
 				rs2 = rs2_p + 8;
@@ -472,8 +472,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_imm6lo = instr[6:2];
                 c_imm6hi = instr[12];
                 rd_rs1_p = instr[9:7];
-                reg_rs1_prec = reg_file[rd_rs1_p+8];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rd_rs1_p+8];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {{26{c_imm6hi}}, c_imm6hi, c_imm6lo};
 				reg_file[rd_rs1_p+8] = reg_file[rd_rs1_p+8] & c_imm_ext;
 				rs1 = rd_rs1_p + 8;
@@ -488,8 +488,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_bimm9lo = instr[6:2];
                 c_bimm9hi = instr[12:10];
                 rs1_p = instr[9:7];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {{23{c_bimm9hi[2]}}, c_bimm9hi[2], c_bimm9lo[4:3], c_bimm9lo[0], c_bimm9hi[1:0], c_bimm9lo[2:1], 1'b0};
 				rs1 = rs1_p + 8;
 				if (reg_file[rs1_p+8] == 0) begin
@@ -507,8 +507,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_bimm9lo = instr[6:2];
                 c_bimm9hi = instr[12:10];
                 rs1_p = instr[9:7];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {{23{c_bimm9hi[2]}}, c_bimm9hi[2], c_bimm9lo[4:3], c_bimm9lo[0], c_bimm9hi[1:0], c_bimm9lo[2:1], 1'b0};
 				rs1 = rs1_p + 8;
 				if (reg_file[rs1_p+8] != 0) begin
@@ -532,8 +532,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
 
                 `uvm_info("C_J", "Instruction C_J detected successfully", UVM_LOW)
                 c_imm12 = instr[12:2];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {{20{c_imm12[10]}}, c_imm12[10], c_imm12[6], c_imm12[8:7], c_imm12[4], c_imm12[5], c_imm12[0], c_imm12[9], c_imm12[3:1], 1'b0};
 				pc = pc + c_imm_ext;
 				incr = 0;
@@ -544,8 +544,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
 
                 `uvm_info("C_JAL", "Instruction C_JAL detected successfully", UVM_LOW)
                 c_imm12 = instr[12:2];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {{20{c_imm12[10]}}, c_imm12[10], c_imm12[6], c_imm12[8:7], c_imm12[4], c_imm12[5], c_imm12[0], c_imm12[9], c_imm12[3:1], 1'b0};
 				reg_file[1] = pc + 2;
 				pc = pc + c_imm_ext;
@@ -558,8 +558,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
 
                 `uvm_info("C_JR", "Instruction C_JR detected successfully", UVM_LOW)
                 rs1_n0 = instr[11:7];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				pc = (reg_file[rs1_n0]) & ~1;
 				rs1 = rs1_n0;
 				incr = 0;
@@ -572,8 +572,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_imm6lo = instr[6:2];
                 c_imm6hi = instr[12];
                 rd_n0 = instr[11:7];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {{26{c_imm6hi}}, c_imm6hi, c_imm6lo};
 				reg_file[rd_n0] = c_imm_ext;
 				rd = rd_n0;
@@ -587,8 +587,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_nzimm18hi = instr[12];
                 c_nzimm18lo = instr[6:2];
                 rd_n2 = instr[11:7];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {{14{c_nzimm18hi}}, c_nzimm18hi, c_nzimm18lo, 12'b0};
 				reg_file[rd_n2] = c_imm_ext;
 				rd = rd_n2;
@@ -603,8 +603,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_uimm7hi = instr[12:10];
                 rs1_p = instr[9:7];
                 rd_p = instr[4:2];
-                reg_rs1_prec = reg_file[rs1_p+8];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1_p+8];
+				reg_rs2_prev = reg_file[rs2];
 				addr = reg_file[rs1_p+8] + {c_uimm7lo[0], c_uimm7hi, c_uimm7lo[1], 2'b00};
 				reg_file[rd_p+8] = {mem[addr + 3][7:0], mem[addr + 2][7:0], mem[addr + 1][7:0], mem[addr][7:0]};
 				rd = rd_p + 8;
@@ -619,8 +619,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_uimm8splo = instr[6:2];
                 c_uimm8sphi = instr[12];
                 rd_n0 = instr[11:7];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				addr = reg_file[2] + {c_uimm8splo[1:0], c_uimm8sphi, c_uimm8splo[4:2], 2'b00};
 				reg_file[rd_n0] = {mem[addr + 3][7:0], mem[addr + 2][7:0], mem[addr + 1][7:0], mem[addr][7:0]};
 				rs1 = 2;
@@ -634,8 +634,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_MV", "Instruction C_MV detected successfully", UVM_LOW)
                 rd_n0 = instr[11:7];
                 c_rs2_n0 = instr[6:2];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[c_rs2_n0];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[c_rs2_n0];
 				reg_file[rd_n0] = reg_file[c_rs2_n0];
 				rd = rd_n0;
 				rs2 = c_rs2_n0;
@@ -658,8 +658,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_OR", "Instruction C_OR detected successfully", UVM_LOW)
                 rs2_p = instr[4:2];
                 rd_rs1_p = instr[9:7];
-                reg_rs1_prec = reg_file[rd_rs1_p+8];
-				reg_rs2_prec = reg_file[rs2_p+8];
+                reg_rs1_prev = reg_file[rd_rs1_p+8];
+				reg_rs2_prev = reg_file[rs2_p+8];
 				reg_file[rd_rs1_p+8] = reg_file[rd_rs1_p+8] | reg_file[rs2_p+8];
 				rs1 = rd_rs1_p + 8;
 				rs2 = rs2_p + 8;
@@ -673,8 +673,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_SLLI", "Instruction C_SLLI detected successfully", UVM_LOW)
                 c_nzuimm6lo = instr[6:2];
                 rd_rs1_n0 = instr[11:7];
-                reg_rs1_prec = reg_file[rd_rs1_n0];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rd_rs1_n0];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {27'b0, c_nzuimm6lo};
 				reg_file[rd_rs1_n0] = reg_file[rd_rs1_n0] << c_imm_ext;
 				rs1 = rd_rs1_n0;
@@ -688,8 +688,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_SRAI", "Instruction C_SRAI detected successfully", UVM_LOW)
                 c_nzuimm5 = instr[6:2];
                 rd_rs1_p = instr[9:7];
-                reg_rs1_prec = reg_file[rd_rs1_p+8];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rd_rs1_p+8];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {27'b0, c_nzuimm5};
 				reg_file[rd_rs1_p+8] = reg_file[rd_rs1_p+8] >>> c_imm_ext;
 				rs1 = rd_rs1_p + 8;
@@ -703,8 +703,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_SRLI", "Instruction C_SRLI detected successfully", UVM_LOW)
                 c_nzuimm5 = instr[6:2];
                 rd_rs1_p = instr[9:7];
-                reg_rs1_prec = reg_file[rd_rs1_p+8];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rd_rs1_p+8];
+				reg_rs2_prev = reg_file[rs2];
 				c_imm_ext = {27'b0, c_nzuimm5};
 				reg_file[rd_rs1_p+8] = reg_file[rd_rs1_p+8] >> c_imm_ext;
 				rs1 = rd_rs1_p + 8;
@@ -718,8 +718,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_SUB", "Instruction C_SUB detected successfully", UVM_LOW)
                 rs2_p = instr[4:2];
                 rd_rs1_p = instr[9:7];
-                reg_rs1_prec = reg_file[rd_rs1+8];
-				reg_rs2_prec = reg_file[rs2_p+8];
+                reg_rs1_prev = reg_file[rd_rs1+8];
+				reg_rs2_prev = reg_file[rs2_p+8];
 				reg_file[rd_rs1_p+8] = reg_file[rd_rs1_p+8] - reg_file[rs2_p+8];
 				rs1 = rd_rs1_p + 8;
 				rs2 = rs2_p + 8;
@@ -735,8 +735,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 c_uimm7hi = instr[12:10];
                 rs1_p = instr[9:7];
                 rs2_p = instr[4:2];
-                reg_rs1_prec = reg_file[rs1_p+8];
-				reg_rs2_prec = reg_file[rs2_p+8];
+                reg_rs1_prev = reg_file[rs1_p+8];
+				reg_rs2_prev = reg_file[rs2_p+8];
 				addr = reg_file[rs1_p+8] + {c_uimm7lo[0], c_uimm7hi, c_uimm7lo[1], 2'b00};
 				mem[addr] = reg_file[rs2_p+8][7:0];
 				mem[addr + 1] = reg_file[rs2_p+8][15:8];
@@ -751,8 +751,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_SWSP", "Instruction C_SWSP detected successfully", UVM_LOW)
                 c_uimm8sp_s = instr[12:7];
                 c_rs2 = instr[6:2];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[c_rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[c_rs2];
 				addr = reg_file[2] + {c_uimm8sp_s[1:0], c_uimm8sp_s[5:2], 2'b00};
 				mem[addr] = reg_file[c_rs2][7:0];
 				mem[addr + 1] = reg_file[c_rs2][15:8];
@@ -769,8 +769,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("C_XOR", "Instruction C_XOR detected successfully", UVM_LOW)
                 rs2_p = instr[4:2];
                 rd_rs1_p = instr[9:7];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd_rs1_p] = reg_file[rd_rs1_p] ^ reg_file[rs2_p];
 				incr = 2;
 
@@ -782,8 +782,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 csr = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
 				csr_reg_file[csr] = csr_reg_file[csr] & ~reg_file[rs1];
 
@@ -795,8 +795,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 csr = instr[31:20];
                 zimm5 = instr[19:15];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
 				csr_reg_file[csr] = csr_reg_file[csr] & ~zimm5;
 
@@ -808,8 +808,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 csr = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
 				csr_reg_file[csr] = csr_reg_file[csr] | reg_file[rs1];
 
@@ -821,8 +821,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 csr = instr[31:20];
                 zimm5 = instr[19:15];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
 				csr_reg_file[csr] = csr_reg_file[csr] | zimm5;
 
@@ -834,8 +834,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 csr = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
 				csr_reg_file[csr] = reg_file[rs1];
 
@@ -847,8 +847,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 csr = instr[31:20];
                 zimm5 = instr[19:15];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
 				csr_reg_file[csr] = zimm5;
 
@@ -860,8 +860,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = $signed(reg_file[rs1]) / $signed(reg_file[rs2]);
 
             end
@@ -872,8 +872,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] / reg_file[rs2];
 
             end
@@ -909,9 +909,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("JAL", "Instruction JAL detected successfully", UVM_LOW)
                 rd = instr[11:7];
                 jimm20 = instr[31:12];
-                immuj = {{11{jimm20[19]}},jimm20[19], jimm20[7:0], jimm20[8], jimm20[18:9], 1'b0};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				immuj = {{11{jimm20[19]}},jimm20[19], jimm20[7:0], jimm20[8], jimm20[18:9], 1'b0};
 				reg_file[rd] = pc + 4;
 				pc = pc + immuj;
 				incr = 0;
@@ -924,8 +924,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = pc + 4;
 				pc = (reg_file[rs1] + imm12) & ~1;
 				incr = 0;
@@ -938,8 +938,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				imm12_ext = {{20{imm12[11]}}, imm12};
 				reg_file[rd] = {{24{mem[reg_file[rs1] + imm12_ext][7]}}, mem[reg_file[rs1] + imm12_ext][7:0]};
 
@@ -951,8 +951,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				imm12_ext = {{20{imm12[11]}}, imm12};
 				reg_file[rd] = {24'b0, mem[reg_file[rs1] + imm12_ext][7:0]};
 
@@ -964,8 +964,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				imm12_ext = {{20{imm12[11]}}, imm12};
 				reg_file[rd] = {{16{mem[reg_file[rs1] + imm12_ext + 1][7]}}, mem[reg_file[rs1] + imm12_ext + 1][7:0], mem[reg_file[rs1] + imm12_ext][7:0]};
 
@@ -977,8 +977,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				imm12_ext = {{20{imm12[11]}}, imm12};
 				reg_file[rd] = {16'b0, mem[reg_file[rs1] + imm12_ext + 1][7:0], mem[reg_file[rs1] + imm12_ext][7:0]};
 
@@ -989,8 +989,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 `uvm_info("LUI", "Instruction LUI detected successfully", UVM_LOW)
                 rd = instr[11:7];
                 imm20 = instr[31:12];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = imm20 << 12;
 
             end
@@ -1001,8 +1001,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				imm12_ext = {{20{imm12[11]}}, imm12};
 				reg_file[rd] = {mem[reg_file[rs1] + imm12_ext + 3][7:0], mem[reg_file[rs1] + imm12_ext + 2][7:0], mem[reg_file[rs1] + imm12_ext + 1][7:0], mem[reg_file[rs1] + imm12_ext][7:0]};
 
@@ -1014,8 +1014,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_mul = $signed(reg_file[rs1]) * $signed(reg_file[rs2]);
 				reg_file[rd] = reg_mul[31:0];
 
@@ -1027,8 +1027,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_mul = $signed(reg_file[rs1]) * $signed(reg_file[rs2]);
 				reg_file[rd] = reg_mul[63:32];
 
@@ -1040,8 +1040,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_mul = $signed(reg_file[rs1]) * reg_file[rs2];
 				reg_file[rd] = reg_mul[63:32];
 
@@ -1053,8 +1053,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_mul = reg_file[rs1] * reg_file[rs2];
 				reg_file[rd] = reg_mul[63:32];
 
@@ -1066,8 +1066,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] | reg_file[rs2];
 
             end
@@ -1078,8 +1078,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				imm12_ext = {{20{imm12[11]}}, imm12};
 				reg_file[rd] = reg_file[rs1] | imm12_ext;
 
@@ -1091,8 +1091,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = $signed(reg_file[rs1]) % $signed(reg_file[rs2]);
 
             end
@@ -1103,8 +1103,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] % reg_file[rs2];
 
             end
@@ -1116,9 +1116,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rs2 = instr[24:20];
                 imm12hi = instr[31:25];
                 imm12lo = instr[11:7];
-                imms = {imm12hi, imm12lo};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imms = {imm12hi, imm12lo};
 				imms_ext = {{20{imms[11]}}, imms};
 				mem[reg_file[rs1] + imms_ext][7:0] = reg_file[rs2][7:0];
 
@@ -1131,9 +1131,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rs2 = instr[24:20];
                 imm12hi = instr[31:25];
                 imm12lo = instr[11:7];
-                imms = {imm12hi, imm12lo};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imms = {imm12hi, imm12lo};
 				imms_ext = {{20{imms[11]}}, imms};
 				mem[reg_file[rs1] + imms_ext][15:0] = reg_file[rs2][7:0];
 				mem[reg_file[rs1] + imms_ext + 1] = reg_file[rs2][15:8];
@@ -1146,8 +1146,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] << reg_file[rs2];
 
             end
@@ -1158,8 +1158,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 shamtw = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] << shamtw;
 
             end
@@ -1170,8 +1170,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				if ($signed(reg_file[rs1]) < $signed(reg_file[rs2]))
 					reg_file[rd] = 1;
 				else
@@ -1185,8 +1185,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				if ($signed(reg_file[rs1]) < $signed(imm12))
 					reg_file[rd] = 1;
 				else
@@ -1200,8 +1200,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				if (reg_file[rs1] < imm12)
 					reg_file[rd] = 1;
 				else
@@ -1215,8 +1215,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				if (reg_file[rs1] < reg_file[rs2])
 					reg_file[rd] = 1;
 				else
@@ -1230,8 +1230,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] >>> reg_file[rs2];
 
             end
@@ -1242,8 +1242,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 shamtw = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] >>> shamtw;
 
             end
@@ -1254,8 +1254,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] >> reg_file[rs2];
 
             end
@@ -1266,8 +1266,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 shamtw = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] >> shamtw;
 
             end
@@ -1278,8 +1278,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] - reg_file[rs2];
 
             end
@@ -1291,9 +1291,9 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rs2 = instr[24:20];
                 imm12hi = instr[31:25];
                 imm12lo = instr[11:7];
-                imms = {imm12hi, imm12lo};
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imms = {imm12hi, imm12lo};
 				imms_ext = {{20{imms[11]}}, imms};
 				mem[reg_file[rs1] + imms_ext] = reg_file[rs2][7:0];
 				mem[reg_file[rs1] + imms_ext + 1] = reg_file[rs2][15:8];
@@ -1308,8 +1308,8 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rs1] ^ reg_file[rs2];
 
             end
@@ -1320,16 +1320,18 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
-                reg_rs1_prec = reg_file[rs1];
-				reg_rs2_prec = reg_file[rs2];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
 				imm12_ext = {{20{imm12[11]}}, imm12};
 				reg_file[rd] = reg_file[rs1] ^ imm12_ext;
 
             end
 
             default: begin
+
                 `uvm_error("UNKNOWN", "Unknown instruction detected")
                 incr = 4;
+
             end
 
 
@@ -1347,13 +1349,13 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
         if(rs1 != rd) begin
             rvfi_instr_seq_item.rs1_rdata = reg_file[rs1];
         end else begin
-            rvfi_instr_seq_item.rs1_rdata = reg_rs1_prec;
+            rvfi_instr_seq_item.rs1_rdata = reg_rs1_prev;
         end
         rvfi_instr_seq_item.rs2_addr  = rs2;
         if(rs2 != rd) begin
             rvfi_instr_seq_item.rs2_rdata = reg_file[rs2];
         end else begin
-            rvfi_instr_seq_item.rs2_rdata = reg_rs2_prec;
+            rvfi_instr_seq_item.rs2_rdata = reg_rs2_prev;
         end
         rvfi_instr_seq_item.rd1_addr  = rd;
         rvfi_instr_seq_item.rd1_wdata = reg_file[rd];
@@ -1366,6 +1368,6 @@ class uvmc_riscv_opcodes extends uvmc_rvfi_reference_model#(32, 32);
     endfunction : decode_opcode
 
 
-endclass : uvmc_riscv_opcodes
+endclass : uvmc_rvfi_decoder_model
 
-`endif // __uvmc_riscv_opcodes_SV__
+`endif // __uvmc_rvfi_decoder_model_SV__
