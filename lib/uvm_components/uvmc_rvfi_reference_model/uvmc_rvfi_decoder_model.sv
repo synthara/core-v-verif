@@ -115,6 +115,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
     bit [2:0] c_sreg1;
     bit [2:0] c_sreg2;
     bit [4:0] ls3;
+    bit [4:0] ls2;
     
     //Added by hand (not present in arg_lut.csv)
     bit [31:0] instruction;
@@ -133,6 +134,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
     bit [31:0] addr;
     bit [31:0] reg_rs1_prev;
     bit [31:0] reg_rs2_prev;
+    bit [31:0] rs2_masked;
 
 
     uvma_rvfi_instr_seq_item_c#(32, 32) rvfi_instr_seq_item;
@@ -967,6 +969,96 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1]) + $unsigned(2**(reg_file[rs2][4:0]-1))) >> reg_file[rs2][4:0];
 				end else begin
 					reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
+				end
+
+            end
+
+            CV_CLIP : begin
+
+                `uvm_info("CV_CLIP", "Instruction CV_CLIP detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                ls2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_rs1_prev = reg_file[rs1];
+				if (ls2 != 0) begin
+					if ($signed(reg_file[rs1]) <= -$signed(1 <<< (ls2 - 1))) begin
+						reg_file[rd] = -$signed(1 <<< (ls2 - 1));
+					end else if ($signed(reg_file[rs1]) >= $signed((1 <<< (ls2 - 1)) - 1)) begin
+						reg_file[rd] = $signed((1 <<< (ls2 - 1)) - 1);
+					end else begin
+						reg_file[rd] = reg_file[rs1];
+					end
+				end else begin
+					if ($signed(reg_file[rs1]) <= -1) begin
+						reg_file[rd] = -1;
+					end else if ($signed(reg_file[rs1]) >= 0) begin
+						reg_file[rd] = 0;
+					end else begin
+						reg_file[rd] = reg_file[rs1];
+					end
+				end
+
+            end
+
+            CV_CLIPR : begin
+
+                `uvm_info("CV_CLIPR", "Instruction CV_CLIPR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				rs2_masked = reg_file[rs2] & 32'h7FFFFFFF;
+				if ($signed(reg_file[rs1]) <= -$signed(rs2_masked + 1)) begin
+					reg_file[rd] = -$signed(rs2_masked + 1);
+				end else if ($signed(reg_file[rs1]) >= $signed(rs2_masked)) begin
+					reg_file[rd] = $signed(rs2_masked);
+				end else begin
+					reg_file[rd] = reg_file[rs1];
+				end
+
+            end
+
+            CV_CLIPU : begin
+
+                `uvm_info("CV_CLIPU", "Instruction CV_CLIPU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                ls2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_rs1_prev = reg_file[rs1];
+				if (ls2 != 0) begin
+					if (reg_file[rs1] <= 0) begin
+						reg_file[rd] = 0;
+					end else if (reg_file[rs1] >= (1 <<< (ls2 - 1)) - 1) begin
+						reg_file[rd] = (1 <<< (ls2 - 1)) - 1;
+					end else begin
+						reg_file[rd] = reg_file[rs1];
+					end
+				end else begin
+					reg_file[rd] = 0;
+				end
+
+            end
+
+            CV_CLIPUR : begin
+
+                `uvm_info("CV_CLIPUR", "Instruction CV_CLIPUR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				rs2_masked = reg_file[rs2] & 32'h7FFFFFFF;
+				if (reg_file[rs1] <= 0) begin
+					reg_file[rd] = 0;
+				end else if (reg_file[rs1] >= rs2_masked) begin
+					reg_file[rd] = rs2_masked;
+				end else begin
+					reg_file[rd] = reg_file[rs1];
 				end
 
             end
