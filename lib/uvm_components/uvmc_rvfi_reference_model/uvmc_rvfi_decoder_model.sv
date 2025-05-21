@@ -114,6 +114,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
     bit [4:0] c_rs2;
     bit [2:0] c_sreg1;
     bit [2:0] c_sreg2;
+    bit [4:0] ls3;
     
     //Added by hand (not present in arg_lut.csv)
     bit [31:0] instruction;
@@ -851,6 +852,238 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
 				csr_reg_file[csr] = zimm5;
+
+            end
+
+            CV_ADDN : begin
+
+                `uvm_info("CV_ADDN", "Instruction CV_ADDN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = ($signed(reg_file[rs1]) + $signed(reg_file[rs2])) >>> ls3;
+
+            end
+
+            CV_ADDNR : begin
+
+                `uvm_info("CV_ADDNR", "Instruction CV_ADDNR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = ($signed(reg_file[rd]) + $signed(reg_file[rs1])) >>> reg_file[rs2][4:0];
+
+            end
+
+            CV_ADDRN : begin
+
+                `uvm_info("CV_ADDRN", "Instruction CV_ADDRN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (ls3 != 0) begin
+					reg_file[rd] = ($signed(reg_file[rs1]) + $signed(reg_file[rs2]) + $signed(2**(ls3-1))) >>> ls3;
+				end else begin
+					reg_file[rd] = ($signed(reg_file[rs1]) + $signed(reg_file[rs2])) >>> ls3;
+				end
+
+            end
+
+            CV_ADDRNR : begin
+
+                `uvm_info("CV_ADDRNR", "Instruction CV_ADDRNR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (reg_file[rs2] != 0) begin
+					reg_file[rd] = ($signed(reg_file[rd]) + $signed(reg_file[rs1]) + $signed(2**(reg_file[rs2][4:0]-1))) >>> reg_file[rs2][4:0];
+				end else begin
+					reg_file[rd] = ($signed(reg_file[rd]) + $signed(reg_file[rs1])) >>> reg_file[rs2][4:0];
+				end
+
+            end
+
+            CV_ADDUN : begin
+
+                `uvm_info("CV_ADDUN", "Instruction CV_ADDUN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = ($unsigned(reg_file[rs1]) + $unsigned(reg_file[rs2])) >> ls3;
+
+            end
+
+            CV_ADDUNR : begin
+
+                `uvm_info("CV_ADDUNR", "Instruction CV_ADDUNR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
+
+            end
+
+            CV_ADDURN : begin
+
+                `uvm_info("CV_ADDURN", "Instruction CV_ADDURN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (ls3 != 0) begin
+					reg_file[rd] = ($unsigned(reg_file[rs1]) + $unsigned(reg_file[rs2]) + $unsigned(2**(ls3-1))) >> ls3;
+				end else begin
+					reg_file[rd] = ($unsigned(reg_file[rs1]) + $unsigned(reg_file[rs2])) >> ls3;
+				end
+
+            end
+
+            CV_ADDURNR : begin
+
+                `uvm_info("CV_ADDURNR", "Instruction CV_ADDURNR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (reg_file[rs2] != 0) begin
+					reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1]) + $unsigned(2**(reg_file[rs2][4:0]-1))) >> reg_file[rs2][4:0];
+				end else begin
+					reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
+				end
+
+            end
+
+            CV_SUBN : begin
+
+                `uvm_info("CV_SUBN", "Instruction CV_SUBN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = ($signed(reg_file[rs1]) - $signed(reg_file[rs2])) >>> ls3;
+
+            end
+
+            CV_SUBNR : begin
+
+                `uvm_info("CV_SUBNR", "Instruction CV_SUBNR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = ($signed(reg_file[rd]) - $signed(reg_file[rs1])) >>> reg_file[rs2][4:0];
+
+            end
+
+            CV_SUBRN : begin
+
+                `uvm_info("CV_SUBRN", "Instruction CV_SUBRN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (ls3 != 0) begin
+					reg_file[rd] = ($signed(reg_file[rs1]) - $signed(reg_file[rs2]) + $signed(2**(ls3-1))) >>> ls3;
+				end else begin
+					reg_file[rd] = ($signed(reg_file[rs1]) - $signed(reg_file[rs2])) >>> ls3;
+				end
+
+            end
+
+            CV_SUBRNR : begin
+
+                `uvm_info("CV_SUBRNR", "Instruction CV_SUBRNR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (reg_file[rs2] != 0) begin
+					reg_file[rd] = ($signed(reg_file[rd]) - $signed(reg_file[rs1]) + $signed(2**(reg_file[rs2][4:0]-1))) >>> reg_file[rs2][4:0];
+				end else begin
+					reg_file[rd] = ($signed(reg_file[rd]) - $signed(reg_file[rs1])) >>> reg_file[rs2][4:0];
+				end
+
+            end
+
+            CV_SUBUN : begin
+
+                `uvm_info("CV_SUBUN", "Instruction CV_SUBUN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = ($unsigned(reg_file[rs1]) - $unsigned(reg_file[rs2])) >> ls3;
+
+            end
+
+            CV_SUBUNR : begin
+
+                `uvm_info("CV_SUBUNR", "Instruction CV_SUBUNR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = ($unsigned(reg_file[rd]) - $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
+
+            end
+
+            CV_SUBURN : begin
+
+                `uvm_info("CV_SUBURN", "Instruction CV_SUBURN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (ls3 != 0) begin
+					reg_file[rd] = ($unsigned(reg_file[rs1]) - $unsigned(reg_file[rs2]) + $unsigned(2**(ls3-1))) >> ls3;
+				end else begin
+					reg_file[rd] = ($unsigned(reg_file[rs1]) - $unsigned(reg_file[rs2])) >> ls3;
+				end
+
+            end
+
+            CV_SUBURNR : begin
+
+                `uvm_info("CV_SUBURNR", "Instruction CV_SUBURNR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (reg_file[rs2] != 0) begin
+					reg_file[rd] = ($unsigned(reg_file[rd]) - $unsigned(reg_file[rs1]) + $unsigned(2**(reg_file[rs2][4:0]-1))) >> reg_file[rs2][4:0];
+				end else begin
+					reg_file[rd] = ($unsigned(reg_file[rd]) - $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
+				end
 
             end
 

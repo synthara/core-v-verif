@@ -56,3 +56,11 @@ C instructions added to the model, in particular all the instructions in the hel
 ## 14/05/2025 push
 
 System_verilog class name changed from uvmc_riscv_opcodes to uvmc_rvfi_decoder_model. All updates have been done in all the files where it was mentioned ( in particular uvmt_cv32e20_model_test.sv ). Pythonmmodel has been changed name from estrai_opcode.py to decoder_autogen.py, and all italians words were deleted or replaced. All the scripts that were generating the instruction type (ex. R, I, UJ, ecc.) have been commented since they are no more useful ( all variable fields are extracted from arg_lut.csv with their bit-length ). Also all displays and print have been commented, except the last one in the python script, just because it leads to the path the SysVerilog class is created, and the $display in the constructor which is saying the time when the class is created.
+
+## 16/05/2025 push
+
+CV custom instructions added to the model in the folder extensions (just the first approximation, a more accurate debug is needed), and in particular, extension rv_addsub has been added to the model. Unfortunately the hello_world test program has not any of the custom instructions, so I'll not be able to verify with 100% accuracy the instruction's implementation in my model. 
+
+## 21/05/2025 push
+
+Extension rv_addsubls3 added to the model, same verification issues of previous added set ( hello_world test doesn't contain any custom instructions ), I had an issue with ls3 field of this instructions, so I decided finally to add the field ls3 in the arg_lut.csv file. Secondly, the first custom extensions set had an error inside its coding ( there was a mismatch with other instructions, but finally it was me that wrote incorrectly the coding inside the extension file ). 
