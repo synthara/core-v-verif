@@ -5,6 +5,18 @@ import shutil
 import subprocess
 from util import fmt
 
+allowed_marches = [
+    "rv32imc",
+    "rv32im_zicsr",
+    "rv32imc_zicsr",
+]
+
+allowed_toolchains = [
+    "/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/{march}/bin/riscv32-unknown-elf-",
+    "/home/vcl/compiler/riscv-toolchain/riscv-gnu-toolchain/riscv/bin/riscv32-unknown-elf-",
+    "/opt/eda/riscv/tools/corev-openhw-gcc-rocky8-20240530/bin/riscv32-corev-elf-"
+]
+
 # Argparse the input in search of the flag -gui
 parser = argparse.ArgumentParser()
 parser.add_argument("-gui", help="Run the simulation in GUI mode", action="store_true")
@@ -33,9 +45,23 @@ parser.add_argument(
     help="Select the linker script",
     default=None
 )
+parser.add_argument(
+    "-toolchain",
+    help=f"Selects the toolchain to use, default is {allowed_toolchains[0]}, allowed are {allowed_toolchains}",
+    default=allowed_toolchains[0],
+)
+parser.add_argument(
+    "-crt0",
+    help=f"Select the crt0.S script"
+)
+parser.add_argument(
+    "-c",
+    help="Select the C script(s) to compile (space-separated list)",
+    nargs="+"
+)
 parser.add_argument("-bm", help="Enable the behavioral model", action="store_true")
 parser.add_argument("-define",  help="Pass a sim define",      default="")
-parser.add_argument("-march", help="March definition", default="rv32imc")
+parser.add_argument("-march", help="March definition, default is {allowed_marches[0]}, allowed are {allowed_marches}", default=allowed_marches[0])
 parser.add_argument("-delay", help="Fetch initial delay to give time to the TB to load data through AXI in the IMEM", default="100000")
 parser.add_argument("-core", help="Name of the core to simulate, default is cv32e20", default="cv32e20")
 
@@ -100,18 +126,18 @@ if __name__ == "__main__":
 
     VCS_HOME                      = "/opt/eda/synopsys/tools/vcs/latest"
     
-    if args.march not in ["rv32imc", "rv32im_zicsr"]:
+    if args.march not in allowed_marches:
         print("\033[91m" + f"Error: {args.march} is not a valid march definition. Exiting..." + "\033[0m")
         exit()
     
-    # rv32im_zicsr we need to use another toolchain due to this issue 
-    # https://docs.google.com/document/d/12kw4BVbr0RyuAvPRr8CXgR33H9AQaPSzJ4StCifH044/edit?tab=t.0#heading=h.afilqthi1rq8
-    if args.march == "rv32im_zicsr":
-        RISCV_EXE_PREFIX              = f"/home/vcl/compiler/riscv-toolchain/riscv-gnu-toolchain/riscv/bin/riscv32-unknown-elf-"
-        CV_SW_TOOLCHAIN               = f"/home/vcl/compiler/riscv-toolchain/riscv-gnu-toolchain/riscv/"
-    else:
-        RISCV_EXE_PREFIX              = f"/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/{march}/bin/riscv32-unknown-elf-"
-        CV_SW_TOOLCHAIN               = f"/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/{march}"
+    RISCV_EXE_PREFIX = args.toolchain.format(march=args.march)
+    
+    if not shutil.which(RISCV_EXE_PREFIX + "gcc"):
+        print(f"\033[91mError: Toolchain not found at {RISCV_EXE_PREFIX} (missing gcc). Exiting...\033[0m")
+        exit()
+    
+    # Define CV_SW_TOOLCHAIN as RISCV_EXE_PREFIX with everything from 'bin/' on removed
+    CV_SW_TOOLCHAIN = RISCV_EXE_PREFIX.split("/bin/")[0]
 
     os.environ["VCS_HOME"]        = VCS_HOME
     os.environ["CV_SW_TOOLCHAIN"] = CV_SW_TOOLCHAIN
@@ -272,6 +298,13 @@ if __name__ == "__main__":
         crt0_path = f"{CORE_V_VERIF}/tests/programs/custom/riscv_arithmetic_basic_test_0/riscv_arithmetic_basic_test_0.S"
     else:
         crt0_path = f"{CORE_TB_PATH}/bsp/crt0.S"
+        
+    if args.crt0:
+        crt0_path = args.crt0
+        if not os.path.exists(crt0_path):
+            print(f"\033[91mError: crt0.S file {crt0_path} does not exist\033[0m")
+            exit()
+        print(f"\033[93mUsing custom crt0.S file: {crt0_path}\033[0m")
 
     # This test is not present anymore, use the default linker
     # # If the test is rec_tb_cor_axi_test_drive_both_computeram_no_fw_preload,
@@ -279,7 +312,7 @@ if __name__ == "__main__":
     # if uvm_test_name == "rec_tb_cor_axi_test_drive_both_computeram_no_fw_preload":
     #     crt0_path = f"{CORE_V_VERIF}/design/top/rec/scripts/c/dram_system/crt0.S"
 
-    if program_name in ["riscv_arithmetic_basic_test_0", "hello-world"]:
+    if program_name in ["hello-world", "fibonacci"]:
         c_files = f"{CORE_TB_PATH}/tests/programs/custom/{program_name}/{program_name}.c"
     elif program_name == "coremark":
         c_files = f"-DITERATIONS=1 \
@@ -319,6 +352,13 @@ if __name__ == "__main__":
         linker_script = args.ld
     else:
         linker_script = f"{CORE_TB_PATH}/bsp/link.ld"
+        
+    if args.c:
+        c_files = " ".join(args.c)
+        if not os.path.exists(c_files):
+            print(f"\033[91mError: C file {c_files} does not exist\033[0m")
+            exit()
+        print(f"\033[93mUsing custom C files: {c_files}\033[0m")
 
     # This test is not present anymore, use the default linker
     # # If the test is rec_tb_cor_axi_test_drive_both_computeram_no_fw_preload,
