@@ -70,3 +70,9 @@ Extension rv_addsubls3 added to the model, same verification issues of previous 
 ## 22/05/2025 push
 
 ReadmeTOT.md created in order to explain all the high level model
+
+
+
+## 26/05/2025 push
+
+Interface connection to the scoreboard has been fixed (before the model was not able to rely on the scoreboard on debugging the instructions), thus, decode_opcode function now returns the object interface, not anymore the pc, and also the function step had a bug inside it. Thanks to this fix, it's been possible to fix some problem regarding some m instructions, in particular rem, div and mulhsu. Another problem that has been fixed was the incompatibility of c instructions coding in the model, because in my model all the instructions were loaded from the memory 4 byte at times, but for c instructions only the last two are really needed. Because of this, in each c instruction case, here is an & between the instruction and 0x0000FFFF, in order to kill the first 16 bits. Three test programs have been tested and passed succesfully (hello-world, fibonacci and riscv_arithmetic_basic_test_0 ), and all the instructions inside them are correct also in the model. Few of the imc instructions need to be tested yet, in particular c_ebreak, c_nop, csrrc, csrrci, csrrsi, csrrwi, ebreak, ecall, fence, lb
