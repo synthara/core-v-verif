@@ -12,7 +12,9 @@ allowed_marches = [
 ]
 
 allowed_toolchains = [
-    "/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/{march}/bin/riscv32-unknown-elf-",
+    "/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/rv32im/bin/riscv32-unknown-elf-",
+    "/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/rv32imc/bin/riscv32-unknown-elf-",
+    "/mnt/rhea_hdd_raid5/opt_non_storage/backend/toolchains/risc/rv32imcb/bin/riscv32-unknown-elf-",
     "/home/vcl/compiler/riscv-toolchain/riscv-gnu-toolchain/riscv/bin/riscv32-unknown-elf-",
     "/opt/eda/riscv/tools/corev-openhw-gcc-rocky8-20240530/bin/riscv32-corev-elf-"
 ]
