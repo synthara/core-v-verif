@@ -11,3 +11,6 @@
 [submodule "core-v-cores/smart_LSU"]
 	path = core-v-cores/smart_LSU
 	url = git@github.com:synthara/D-SLS-SmartLSU.git
+[submodule "core-v-cores/cv32e20"]
+	path = core-v-cores/cv32e20
+	url = git@github.com:synthara/rv2.git

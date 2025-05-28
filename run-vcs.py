@@ -9,6 +9,7 @@ allowed_marches = [
     "rv32imc",
     "rv32im_zicsr",
     "rv32imc_zicsr",
+    "rv32imc_zicsr_xcvalu",
 ]
 
 allowed_toolchains = [
@@ -22,6 +23,8 @@ allowed_toolchains = [
 # Argparse the input in search of the flag -gui
 parser = argparse.ArgumentParser()
 parser.add_argument("-gui", help="Run the simulation in GUI mode", action="store_true")
+parser.add_argument("-cop", help="Compile the coprocessor as well", action="store_true")
+parser.add_argument("-dmv", help="Compile the data mover as well", action="store_true")
 parser.add_argument(
     "-sw_only", help="Compile only the SW, not the HW", action="store_true"
 )
@@ -73,6 +76,8 @@ if __name__ == "__main__":
     test_define = ""
     
     subprocess.run(["reset"])
+
+    additional_filelist = ""
 
     args = parser.parse_args()
 
@@ -226,6 +231,19 @@ if __name__ == "__main__":
     CV_CORE_MANIFEST = f"{CV_CORE_PKG}/{CV_CORE_LC}_manifest.flist"
     os.environ["DESIGN_RTL_DIR"] = f"{CV_CORE_PKG}/rtl"
 
+    if args.cop:
+        os.environ["RVV_PATH"] = f"{CV_CORE_PKG}/../coproc_xcs"
+        os.environ["DSL_PATH"] = f"{CV_CORE_PKG}/../coproc_xcs/src/dsl"
+
+        additional_filelist += f"-f {CORE_V_VERIF}/core-v-cores/coproc_xcs/coproc.fl "
+
+    if args.dmv:
+        os.environ["DSL_PATH"] = f"{CV_CORE_PKG}/../coproc_xcs/src/dsl"
+        os.environ["DMV_PATH"] = f"{CV_CORE_PKG}/../smart_LSU"
+
+        additional_filelist += f"-f {CORE_V_VERIF}/core-v-cores/smart_LSU/datamover.fl "
+
+
     os.environ["DPI_DASM_ROOT"] = "{CORE_V_VERIF}/lib/dpi_dasm"
 
     ## DRI DEFINITION
@@ -298,6 +316,8 @@ if __name__ == "__main__":
     ###################################################################
     if program_name == "riscv_arithmetic_basic_test_0":
         crt0_path = f"{CORE_V_VERIF}/tests/programs/custom/riscv_arithmetic_basic_test_0/riscv_arithmetic_basic_test_0.S"
+    elif program_name == "simple_cv_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_test/simple_cv_test.S"
     else:
         crt0_path = f"{CORE_TB_PATH}/bsp/crt0.S"
         
@@ -314,7 +334,7 @@ if __name__ == "__main__":
     # if uvm_test_name == "rec_tb_cor_axi_test_drive_both_computeram_no_fw_preload":
     #     crt0_path = f"{CORE_V_VERIF}/design/top/rec/scripts/c/dram_system/crt0.S"
 
-    if program_name in ["hello-world", "fibonacci"]:
+    if program_name in ["hello-world", "fibonacci", "csr_instructions", "branch_zero"]:
         c_files = f"{CORE_TB_PATH}/tests/programs/custom/{program_name}/{program_name}.c"
     elif program_name == "coremark":
         c_files = f"-DITERATIONS=1 \
@@ -410,6 +430,7 @@ if __name__ == "__main__":
         "elf_file": elf_file,
         "hex_file": hex_file,
         "itb_file": itb_file,
+        "additional_filelist": additional_filelist
     }
 
     google_compile_cmd = fmt.google_compile_cmd.format(**fmt_dict)

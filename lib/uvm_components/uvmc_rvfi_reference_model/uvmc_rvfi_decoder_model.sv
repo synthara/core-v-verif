@@ -161,6 +161,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
         csr_reg_file[12'h301] = 32'h40101104; // misa (RV32IMCU)
         csr_reg_file[12'hF12] = 32'h00000023; // marchid
         csr_reg_file[12'hF13] = 32'h00000000; // mimpid
+        csr_reg_file[12'h300] = 32'h00001800; // mstatus
 
     endfunction : new
 
@@ -819,7 +820,9 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
-				csr_reg_file[csr] = csr_reg_file[csr] & ~reg_file[rs1];
+				if (rs1 != 0) begin
+					csr_reg_file[csr] = csr_reg_file[csr] & ~reg_rs1_prev;
+				end
 
             end
 
@@ -832,7 +835,9 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
-				csr_reg_file[csr] = csr_reg_file[csr] & ~zimm5;
+				if (zimm5 != 0) begin
+					csr_reg_file[csr] = csr_reg_file[csr] & ~zimm5;
+				end
 
             end
 
@@ -845,7 +850,9 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
-				csr_reg_file[csr] = csr_reg_file[csr] | reg_file[rs1];
+				if (rs1 != 0) begin
+					csr_reg_file[csr] = csr_reg_file[csr] | reg_rs1_prev;
+				end
 
             end
 
@@ -858,7 +865,9 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = csr_reg_file[csr];
-				csr_reg_file[csr] = csr_reg_file[csr] | zimm5;
+				if (zimm5 != 0) begin
+					csr_reg_file[csr] = csr_reg_file[csr] | zimm5;
+				end
 
             end
 
@@ -870,8 +879,10 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 csr = instr[31:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
-				reg_file[rd] = csr_reg_file[csr];
-				csr_reg_file[csr] = reg_file[rs1];
+				if (rd != 0) begin
+					reg_file[rd] = csr_reg_file[csr];
+				end
+				csr_reg_file[csr] = reg_rs1_prev;
 
             end
 
@@ -883,7 +894,9 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 zimm5 = instr[19:15];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
-				reg_file[rd] = csr_reg_file[csr];
+				if (rd != 0) begin
+					reg_file[rd] = csr_reg_file[csr];
+				end
 				csr_reg_file[csr] = zimm5;
 
             end
