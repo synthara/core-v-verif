@@ -316,8 +316,8 @@ if __name__ == "__main__":
     ###################################################################
     if program_name == "riscv_arithmetic_basic_test_0":
         crt0_path = f"{CORE_V_VERIF}/tests/programs/custom/riscv_arithmetic_basic_test_0/riscv_arithmetic_basic_test_0.S"
-    elif program_name == "simple_cv_test":
-        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_test/simple_cv_test.S"
+    elif program_name == "simple_cv_addsub_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_addsub_test/simple_cv_addsub_test.S"
     else:
         crt0_path = f"{CORE_TB_PATH}/bsp/crt0.S"
         

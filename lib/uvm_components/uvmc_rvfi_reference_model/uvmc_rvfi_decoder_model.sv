@@ -952,7 +952,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (reg_file[rs2] != 0) begin
-					reg_file[rd] = ($signed(reg_file[rd]) + $signed(reg_file[rs1]) + $signed(2**(reg_file[rs2][4:0]-1))) >>> reg_file[rs2][4:0];
+					reg_file[rd] = ($signed(reg_file[rd]) + $signed(reg_file[rs1]) + $signed(1 << (reg_file[rs2][4:0]-1))) >>> reg_file[rs2][4:0];
 				end else begin
 					reg_file[rd] = ($signed(reg_file[rd]) + $signed(reg_file[rs1])) >>> reg_file[rs2][4:0];
 				end
@@ -1010,7 +1010,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (reg_file[rs2] != 0) begin
-					reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1]) + $unsigned(2**(reg_file[rs2][4:0]-1))) >> reg_file[rs2][4:0];
+					reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1]) + $unsigned(1 << (reg_file[rs2][4:0]-1))) >> reg_file[rs2][4:0];
 				end else begin
 					reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
 				end
@@ -1592,7 +1592,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (reg_file[rs2] != 0) begin
-					reg_file[rd] = ($signed(reg_file[rd]) - $signed(reg_file[rs1]) + $signed(2**(reg_file[rs2][4:0]-1))) >>> reg_file[rs2][4:0];
+					reg_file[rd] = ($signed(reg_file[rd]) - $signed(reg_file[rs1]) + $signed(1 << (reg_file[rs2][4:0]-1))) >>> reg_file[rs2][4:0];
 				end else begin
 					reg_file[rd] = ($signed(reg_file[rd]) - $signed(reg_file[rs1])) >>> reg_file[rs2][4:0];
 				end
@@ -1650,7 +1650,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (reg_file[rs2] != 0) begin
-					reg_file[rd] = ($unsigned(reg_file[rd]) - $unsigned(reg_file[rs1]) + $unsigned(2**(reg_file[rs2][4:0]-1))) >> reg_file[rs2][4:0];
+					reg_file[rd] = ($unsigned(reg_file[rd]) - $unsigned(reg_file[rs1]) + $unsigned(1 << (reg_file[rs2][4:0]-1))) >> reg_file[rs2][4:0];
 				end else begin
 					reg_file[rd] = ($unsigned(reg_file[rd]) - $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
 				end
