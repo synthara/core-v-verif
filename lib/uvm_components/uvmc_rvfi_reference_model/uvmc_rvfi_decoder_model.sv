@@ -936,7 +936,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (ls3 != 0) begin
-					reg_file[rd] = ($signed(reg_file[rs1]) + $signed(reg_file[rs2]) + $signed(2**(ls3-1))) >>> ls3;
+					reg_file[rd] = ($signed(reg_file[rs1]) + $signed(reg_file[rs2]) + $signed(1 << (ls3-1))) >>> ls3;
 				end else begin
 					reg_file[rd] = ($signed(reg_file[rs1]) + $signed(reg_file[rs2])) >>> ls3;
 				end
@@ -994,7 +994,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (ls3 != 0) begin
-					reg_file[rd] = ($unsigned(reg_file[rs1]) + $unsigned(reg_file[rs2]) + $unsigned(2**(ls3-1))) >> ls3;
+					reg_file[rd] = ($unsigned(reg_file[rs1]) + $unsigned(reg_file[rs2]) + $unsigned(1 << (ls3-1))) >> ls3;
 				end else begin
 					reg_file[rd] = ($unsigned(reg_file[rs1]) + $unsigned(reg_file[rs2])) >> ls3;
 				end
@@ -1576,7 +1576,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (ls3 != 0) begin
-					reg_file[rd] = ($signed(reg_file[rs1]) - $signed(reg_file[rs2]) + $signed(2**(ls3-1))) >>> ls3;
+					reg_file[rd] = ($signed(reg_file[rs1]) - $signed(reg_file[rs2]) + $signed(1 << (ls3-1))) >>> ls3;
 				end else begin
 					reg_file[rd] = ($signed(reg_file[rs1]) - $signed(reg_file[rs2])) >>> ls3;
 				end
@@ -1634,7 +1634,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (ls3 != 0) begin
-					reg_file[rd] = ($unsigned(reg_file[rs1]) - $unsigned(reg_file[rs2]) + $unsigned(2**(ls3-1))) >> ls3;
+					reg_file[rd] = ($unsigned(reg_file[rs1]) - $unsigned(reg_file[rs2]) + $unsigned(1 << (ls3-1))) >> ls3;
 				end else begin
 					reg_file[rd] = ($unsigned(reg_file[rs1]) - $unsigned(reg_file[rs2])) >> ls3;
 				end

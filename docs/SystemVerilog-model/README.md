@@ -81,3 +81,8 @@ Interface connection to the scoreboard has been fixed (before the model was not 
 ## 28/05/2025 push
 
 Added coprocessor and smart_LSU rtl to the model, the to include these devices to the verification model has to be given through the shell, by selecting -cop and -dmv respectively for the coprocessor and the smart_LSU ( It's better to add both of them or none, otherwise the model will not work because some filelist needed for the coproc are in the smart_LSU ), plus csr instructions have been fixed ( csr test instructions is not working, because some bits of some csr registers are hardcoded, and so I would need a bit mask for each register of the csr_register_file, but csr instructions implementation is correct in the model ). Next step is performing some tests with cv instr.
+
+
+## 30/05/2025 push
+
+Creation of new tests for some set of instructions. Instructions tested are cv_addsub instructions, and cv_addsublse instructions. A new test for both instructions has been created, in particular each test contains a hundred of cv instruction (addsub for the first test, addsubls3 for the second one), alongside some i, m or c instructions put randomly on the assembly code. To perform the new test, you have to add the program name to the run_vcs.py script. Both tests are terminated with 0 errors.
