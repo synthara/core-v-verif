@@ -1073,7 +1073,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (ls2 != 0) begin
-					if (reg_file[rs1] <= 0) begin
+					if ($signed(reg_file[rs1]) <= 0) begin
 						reg_file[rd] = 0;
 					end else if (reg_file[rs1] >= (1 <<< (ls2 - 1)) - 1) begin
 						reg_file[rd] = (1 <<< (ls2 - 1)) - 1;
@@ -1095,7 +1095,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				rs2_masked = reg_file[rs2] & 32'h7FFFFFFF;
-				if (reg_file[rs1] <= 0) begin
+				if ($signed(reg_file[rs1]) <= 0) begin
 					reg_file[rd] = 0;
 				end else if (reg_file[rs1] >= rs2_masked) begin
 					reg_file[rd] = rs2_masked;
