@@ -86,3 +86,11 @@ Added coprocessor and smart_LSU rtl to the model, the to include these devices t
 ## 30/05/2025 push
 
 Creation of new tests for some set of instructions. Instructions tested are cv_addsub instructions, and cv_addsublse instructions. A new test for both instructions has been created, in particular each test contains a hundred of cv instruction (addsub for the first test, addsubls3 for the second one), alongside some i, m or c instructions put randomly on the assembly code. To perform the new test, you have to add the program name to the run_vcs.py script. Both tests are terminated with 0 errors.
+
+## 02/06/2025 push
+
+Creation of model and test for clip instructions, test containing almost a thousand instructions alongside i, m and c instructions randomly. To perform the new test, you have to add the program name to the run_vcs.py script. Test terminated with 0 errors.
+
+## 03/06/2025 push
+
+Creation of model and test for cmpsimd instructions, test containing almost a thousand instructions alongside i, m and c instructions randomly. These new instructions could work either on .h or .b mode. Before the instruction arrive to the compiler, the only encoding recognisable by our compiler is the .h one. Now you are asking yourself: how could I handle the cv.cmpsimd.b instructions if the compiler doesn't recognise their encoding? Basically for our compiler, cv.cmpsimd.h and cv.cmpsimd.b instructions are literally the same instruction ( they have the same encoding ---> the cv.cmpsimd.h one, so if you are writing an assembly test file, you should put only these type of instructions, otherwise if you are putting a cv.cmpsimd instructions, its encoding will not be recognised by the compiler ). The rtl is able to differentiate the different instructions by checking the SIMD_DP csr register, so for the core, but also for the reference model, the instruction switch from .h to .b, or viceversa, only if there is a csrrwi inside the SIMD_DP register. Test has been performed with both .h and .b instructions ( some csrrwi was inserted ). Test has been passed with errors.

@@ -50,5 +50,6 @@ core-v-verif/
 
 ## Running the model
 
-In oredr to run the new model, you need to run a python script named run_vcs.py, and need to add a flag -test uvmt_cv32e20_model_test_dual_ref_c, because for now the model is using both our reference model and spike reference model.
+In oredr to run the new model, you need to run a python script named run_vcs.py, and need to add a flag -test uvmt_cv32e20_model_test_dual_ref_c, because for now the model is using both our reference model and spike reference model. You have to use the correct compiler by adding the flag -march and, if you want to have the cv instructions, use "-march rv32imc_zicsr_xcvalu, alongside the correct toolchain ---> "-toolchain -toolchain /opt/eda/riscv/tools/corev-openhw-gcc-rocky8-20240530/bin/riscv32-corev-elf-". If you are using cv_instruction you need to include also the coproc and smart_lsu to the model, in particular you need to add the flag "-cop" and "-dmv", in order to include the needed rtl and be sure the model is working. These flags are STRIICTLY NECESSARY in order to achieve a correct behaviour, you can also add an additional flag -test alongside the name of the test you want to perform (default = no flag = hello world program). 
+P.S Not all the tests have a correct behaviour ( not because our new model is wrong, but because there is something we still have to include ex. interrupts ). Program you can try and be sure to achieve a correct output : hello-world, fibonacci, riscv_arithmetic_basic_test_0, all the simple_cv_xxxx tests 
 

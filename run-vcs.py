@@ -10,6 +10,8 @@ allowed_marches = [
     "rv32im_zicsr",
     "rv32imc_zicsr",
     "rv32imc_zicsr_xcvalu",
+    "rv32imc_zicsr_xcvsimd",
+    "rv32imc_zicsr_xcvalu_xcvsimd",
 ]
 
 allowed_toolchains = [
@@ -322,6 +324,8 @@ if __name__ == "__main__":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_addsubls3_test/simple_cv_addsubls3_test.S"
     elif program_name == "simple_cv_clip_test":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_clip_test/simple_cv_clip_test.S"
+    elif program_name == "simple_cv_cmpsimd_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_cmpsimd_test/simple_cv_cmpsimd_test.S"
     else:
         crt0_path = f"{CORE_TB_PATH}/bsp/crt0.S"
         
