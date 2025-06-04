@@ -136,7 +136,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
     bit [31:0] reg_rs2_prev;
     bit [31:0] rs2_masked;
     bit [31:0] imm6_ext;
-    string csr_val;
+    bit [31:0] reg_result;
 
 
     uvma_rvfi_instr_seq_item_c#(32, 32) rvfi_instr_seq_item;
@@ -2491,6 +2491,444 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					end else begin
 						reg_file[rd][7:0] = 8'h00;
 					end
+				end
+
+            end
+
+            CV_DOTSP : begin
+
+                `uvm_info("CV_DOTSP", "Instruction CV_DOTSP detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_DOTSP_H", "Instruction CV_DOTSP_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{reg_file[rs2][(i*16)+15]}}, reg_file[rs2][(i*16)+:16]});
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_DOTSP_B", "Instruction CV_DOTSP_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd] += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
+					end
+				end
+
+            end
+
+            CV_DOTSP_SC : begin
+
+                `uvm_info("CV_DOTSP_SC", "Instruction CV_DOTSP_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_DOTSP_SC_H", "Instruction CV_DOTSP_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]});
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_DOTSP_SC_B", "Instruction CV_DOTSP_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd] += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
+					end
+				end
+
+            end
+
+            CV_DOTSP_SCI : begin
+
+                `uvm_info("CV_DOTSP_SCI", "Instruction CV_DOTSP_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				reg_file[rd] = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_DOTSP_SCI_H", "Instruction CV_DOTSP_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{imm6_ext[15]}}, imm6_ext[15:0]});
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_DOTSP_SCI_B", "Instruction CV_DOTSP_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd] += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
+					end
+				end
+
+            end
+
+            CV_DOTUP : begin
+
+                `uvm_info("CV_DOTUP", "Instruction CV_DOTUP detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_DOTUP_SC_H", "Instruction CV_DOTUP_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, reg_file[rs2][(i*16)+:16]};
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_DOTUP_SC_B", "Instruction CV_DOTUP_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
+					end
+				end
+
+            end
+
+            CV_DOTUP_SC : begin
+
+                `uvm_info("CV_DOTUP_SC", "Instruction CV_DOTUP_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_DOTUP_SC_H", "Instruction CV_DOTUP_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, reg_file[rs2][15:0]};
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_DOTUP_SC_B", "Instruction CV_DOTUP_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][7:0]};
+					end
+				end
+
+            end
+
+            CV_DOTUP_SCI : begin
+
+                `uvm_info("CV_DOTUP_SCI", "Instruction CV_DOTUP_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				reg_file[rd] = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_DOTUP_SCI_H", "Instruction CV_DOTUP_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, imm6_ext[15:0]};
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_DOTUP_SCI_B", "Instruction CV_DOTUP_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, imm6_ext[7:0]};
+					end
+				end
+
+            end
+
+            CV_DOTUSP : begin
+
+                `uvm_info("CV_DOTUSP", "Instruction CV_DOTUSP detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_DOTUSP_H", "Instruction CV_DOTUSP_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{reg_file[rs2][(i*16)+15]}}, reg_file[rs2][(i*16)+:16]};
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_DOTUSP_B", "Instruction CV_DOTUSP_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]};
+					end
+				end
+
+            end
+
+            CV_DOTUSP_SC : begin
+
+                `uvm_info("CV_DOTUSP_SC", "Instruction CV_DOTUSP_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_DOTUSP_SC_H", "Instruction CV_DOTUSP_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]};
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_DOTUSP_SC_B", "Instruction CV_DOTUSP_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]};
+					end
+				end
+
+            end
+
+            CV_DOTUSP_SCI : begin
+
+                `uvm_info("CV_DOTUSP_SCI", "Instruction CV_DOTUSP_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				reg_file[rd] = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_DOTUSP_SCI_H", "Instruction CV_DOTUSP_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{imm6_ext[15]}}, imm6_ext[15:0]};
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_DOTUSP_SCI_B", "Instruction CV_DOTUSP_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{imm6_ext[7]}}, imm6_ext[7:0]};
+					end
+				end
+
+            end
+
+            CV_SDOTSP : begin
+
+                `uvm_info("CV_SDOTSP", "Instruction CV_SDOTSP detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_result = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SDOTSP_H", "Instruction CV_SDOTSP_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{reg_file[rs2][(i*16)+15]}}, reg_file[rs2][(i*16)+:16]});
+					end
+					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SDOTSP_B", "Instruction CV_SDOTSP_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_result += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
+					end
+					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
+				end
+
+            end
+
+            CV_SDOTSP_SC : begin
+
+                `uvm_info("CV_SDOTSP_SC", "Instruction CV_SDOTSP_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_result = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SDOTSP_SC_H", "Instruction CV_SDOTSP_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]});
+					end
+					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SDOTSP_SC_B", "Instruction CV_SDOTSP_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_result += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
+					end
+					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
+				end
+
+            end
+
+            CV_SDOTSP_SCI : begin
+
+                `uvm_info("CV_SDOTSP_SCI", "Instruction CV_SDOTSP_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				reg_result = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SDOTSP_SCI_H", "Instruction CV_SDOTSP_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{imm6_ext[15]}}, imm6_ext[15:0]});
+					end
+					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SDOTSP_SCI_B", "Instruction CV_SDOTSP_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_result += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
+					end
+					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
+				end
+
+            end
+
+            CV_SDOTUP : begin
+
+                `uvm_info("CV_SDOTUP", "Instruction CV_SDOTUP detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_result = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SDOTUP_H", "Instruction CV_SDOTUP_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, reg_file[rs2][(i*16)+:16]};
+					end
+					reg_file[rd] = reg_file[rd] + reg_result;
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SDOTUP_B", "Instruction CV_SDOTUP_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
+					end
+					reg_file[rd] = reg_file[rd] + reg_result;
+				end
+
+            end
+
+            CV_SDOTUP_SC : begin
+
+                `uvm_info("CV_SDOTUP_SC", "Instruction CV_SDOTUP_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_result = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SDOTUP_SC_H", "Instruction CV_SDOTUP_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, reg_file[rs2][15:0]};
+					end
+					reg_file[rd] = reg_file[rd] + reg_result;
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SDOTUP_SC_B", "Instruction CV_SDOTUP_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][7:0]};
+					end
+					reg_file[rd] = reg_file[rd] + reg_result;
+				end
+
+            end
+
+            CV_SDOTUP_SCI : begin
+
+                `uvm_info("CV_SDOTUP_SCI", "Instruction CV_SDOTUP_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				reg_result = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SDOTUP_SCI_H", "Instruction CV_SDOTUP_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, imm6_ext[15:0]};
+					end
+					reg_file[rd] = reg_file[rd] + reg_result;
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SDOTUP_SCI_B", "Instruction CV_SDOTUP_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, imm6_ext[7:0]};
+					end
+					reg_file[rd] = reg_file[rd] + reg_result;
+				end
+
+            end
+
+            CV_SDOTUSP : begin
+
+                `uvm_info("CV_SDOTUSP", "Instruction CV_SDOTUSP detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_result = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SDOTUSP_H", "Instruction CV_SDOTUSP_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * $signed({{16{reg_file[rs2][(i*16)+15]}}, reg_file[rs2][(i*16)+:16]});
+					end
+					reg_file[rd] = reg_file[rd] + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SDOTUSP_B", "Instruction CV_SDOTUSP_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
+					end
+					reg_file[rd] = reg_file[rd] + $signed(reg_result);
+				end
+
+            end
+
+            CV_SDOTUSP_SC : begin
+
+                `uvm_info("CV_SDOTUSP_SC", "Instruction CV_SDOTUSP_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_result = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SDOTUSP_SC_H", "Instruction CV_SDOTUSP_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * $signed({{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]});
+					end
+					reg_file[rd] = reg_file[rd] + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SDOTUSP_SC_B", "Instruction CV_SDOTUSP_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
+					end
+					reg_file[rd] = reg_file[rd] + $signed(reg_result);
+				end
+
+            end
+
+            CV_SDOTUSP_SCI : begin
+
+                `uvm_info("CV_SDOTUSP_SCI", "Instruction CV_SDOTUSP_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				reg_result = 0;
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SDOTUSP_SCI_H", "Instruction CV_SDOTUSP_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_result += {{16{1'b0}}, reg_file[rs1][(i*8)+:16]} * $signed({{16{imm6_ext[15]}}, imm6_ext[15:0]});
+					end
+					reg_file[rd] = reg_file[rd] + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SDOTUSP_SCI_B", "Instruction CV_SDOTUSP_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
+					end
+					reg_file[rd] = reg_file[rd] + $signed(reg_result);
 				end
 
             end
