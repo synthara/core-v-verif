@@ -137,6 +137,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
     bit [31:0] rs2_masked;
     bit [31:0] imm6_ext;
     bit [31:0] reg_result;
+    bit iteration_mx = 0;
 
 
     uvma_rvfi_instr_seq_item_c#(32, 32) rvfi_instr_seq_item;
@@ -2514,6 +2515,18 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
 					end
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_DOTSP_MX", "Instruction CV_DOTSP_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]});
+						end
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2537,6 +2550,18 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
 					end
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_DOTSP_SC_MX", "Instruction CV_DOTSP_SC_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
+						end
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2561,6 +2586,18 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
 					end
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_DOTSP_SCI_MX", "Instruction CV_DOTSP_SCI_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
+						end
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2575,15 +2612,27 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTUP_SC_H", "Instruction CV_DOTUP_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_H", "Instruction CV_DOTUP_H detected successfully", UVM_LOW);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, reg_file[rs2][(i*16)+:16]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTUP_SC_B", "Instruction CV_DOTUP_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_B", "Instruction CV_DOTUP_B detected successfully", UVM_LOW);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
 					end
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_DOTUP_MX", "Instruction CV_DOTUP_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]};
+						end
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2607,6 +2656,18 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][7:0]};
 					end
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_DOTUP_SC_MX", "Instruction CV_DOTUP_SC_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][7:0]};
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][7:0]};
+						end
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2631,6 +2692,18 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, imm6_ext[7:0]};
 					end
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_DOTUP_SCI_MX", "Instruction CV_DOTUP_SCI_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, imm6_ext[7:0]};
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, imm6_ext[7:0]};
+						end
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2654,6 +2727,18 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]};
 					end
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_DOTUSP_MX", "Instruction CV_DOTUSP_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]};
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]};
+						end
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2677,6 +2762,18 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]};
 					end
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_DOTUSP_SC_MX", "Instruction CV_DOTUSP_SC_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]};
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]};
+						end
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2701,6 +2798,18 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{imm6_ext[7]}}, imm6_ext[7:0]};
 					end
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_DOTUSP_SCI_MX", "Instruction CV_DOTUSP_SCI_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{imm6_ext[7]}}, imm6_ext[7:0]};
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{imm6_ext[7]}}, imm6_ext[7:0]};
+						end
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2726,6 +2835,20 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_result += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
 					end
 					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_SDOTSP_MX", "Instruction CV_SDOTSP_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]});
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2751,6 +2874,20 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_result += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
 					end
 					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_SDOTSP_SC_MX", "Instruction CV_SDOTSP_SC_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2777,6 +2914,20 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_result += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
 					end
 					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_SDOTSP_SCI_MX", "Instruction CV_SDOTSP_SCI_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2802,6 +2953,20 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
 					end
 					reg_file[rd] = reg_file[rd] + reg_result;
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_SDOTUP_MX", "Instruction CV_SDOTUP_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2827,6 +2992,20 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][7:0]};
 					end
 					reg_file[rd] = reg_file[rd] + reg_result;
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_SDOTUP_SC_MX", "Instruction CV_SDOTUP_SC_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][7:0]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][7:0]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2853,6 +3032,20 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, imm6_ext[7:0]};
 					end
 					reg_file[rd] = reg_file[rd] + reg_result;
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_SDOTUP_SCI_MX", "Instruction CV_SDOTUP_SCI_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, imm6_ext[7:0]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, imm6_ext[7:0]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2878,6 +3071,20 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
 					end
 					reg_file[rd] = reg_file[rd] + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_SDOTUSP_MX", "Instruction CV_SDOTUSP_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2903,6 +3110,20 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
 					end
 					reg_file[rd] = reg_file[rd] + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_SDOTUSP_SC_MX", "Instruction CV_SDOTUSP_SC_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
@@ -2929,6 +3150,20 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
 					end
 					reg_file[rd] = reg_file[rd] + $signed(reg_result);
+				end else if (csr_reg_file[12'h0A0] == 6) begin
+					`uvm_info("CV_SDOTUSP_SCI_MX", "Instruction CV_SDOTUSP_SCI_MX detected successfully", UVM_LOW);
+					if (iteration_mx == 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{imm6_ext[7]}}, imm6_ext[7:0]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{imm6_ext[7]}}, imm6_ext[7:0]};
+						end
+						reg_file[rd] = reg_file[rd] + reg_result;
+					end
+					iteration_mx = ~iteration_mx;
 				end
 
             end
