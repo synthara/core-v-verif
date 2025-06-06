@@ -102,3 +102,7 @@ Creation of model and test for dotpsimd instructions, test containing almost a t
 ## 05/06/2025 push
 
 Added the extension .mh to the dotpsimd instrcutions, the test has been updated, but pay attention: all mx instructions MUST be in couples, because 2 iterations needs to be performed in order to have the correct result ( the compiler apparently knows this ). So if you are trying to write different mx instructions inside a assembly file, you need to MANTAIN rd and op2, and you MUST CHANGE rs1. Only in this way the operation performed by the rtl ( and also the testbench ) will be correct. Test has been passed with 0 errors. Two new signals have been added in the autogen model: reg_result to save an inside of a register during a computation in the dotp instructions and iteration_mx, a bit that is used to recognise in ehich branch of the mx instructions we currently are.
+
+## 06/06/2025 push
+
+Creation of model and test for rv_genalu instructions, test containing almost a ten thousand instructions alongside i, m and c instructions randomly. Test has been performed with 0 errors. P.S. My model recognises cv.abs, cv.min, cv.minu, cv.max, cv.maxu with a '.w' on their end, that's because in another set there are some other instructions with the same name. Thus I used the .w on the end so that in the autogenertion of the case there is no incongruence in the instructions name ( because I'm autogenerating the instructions' implementation based on instruction name ).

@@ -902,6 +902,21 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_ABS_W : begin
+
+                `uvm_info("CV_ABS_W", "Instruction CV_ABS_W detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if ($signed(reg_file[rs1]) < 0) begin
+					reg_file[rd] = -reg_file[rs1];
+				end else begin
+					reg_file[rd] = reg_file[rs1];
+				end
+
+            end
+
             CV_ADDN : begin
 
                 `uvm_info("CV_ADDN", "Instruction CV_ADDN detected successfully", UVM_LOW)
@@ -2814,6 +2829,114 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_EXTBS : begin
+
+                `uvm_info("CV_EXTBS", "Instruction CV_EXTBS detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {{24{reg_file[rs1][7]}}, reg_file[rs1][7:0]};
+
+            end
+
+            CV_EXTBZ : begin
+
+                `uvm_info("CV_EXTBZ", "Instruction CV_EXTBZ detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {{16{1'b0}}, reg_file[rs1][7:0]};
+
+            end
+
+            CV_EXTHS : begin
+
+                `uvm_info("CV_EXTHS", "Instruction CV_EXTHS detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]};
+
+            end
+
+            CV_EXTHZ : begin
+
+                `uvm_info("CV_EXTHZ", "Instruction CV_EXTHZ detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {{16{1'b0}}, reg_file[rs1][15:0]};
+
+            end
+
+            CV_MAX_W : begin
+
+                `uvm_info("CV_MAX_W", "Instruction CV_MAX_W detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if ($signed(reg_file[rs1]) < $signed(reg_file[rs2])) begin
+					reg_file[rd] = reg_file[rs2];
+				end else begin
+					reg_file[rd] = reg_file[rs1];
+				end
+
+            end
+
+            CV_MAXU_W : begin
+
+                `uvm_info("CV_MAXU_W", "Instruction CV_MAXU_W detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (reg_file[rs1] < reg_file[rs2]) begin
+					reg_file[rd] = reg_file[rs2];
+				end else begin
+					reg_file[rd] = reg_file[rs1];
+				end
+
+            end
+
+            CV_MIN_W : begin
+
+                `uvm_info("CV_MIN_W", "Instruction CV_MIN_W detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if ($signed(reg_file[rs1]) < $signed(reg_file[rs2])) begin
+					reg_file[rd] = reg_file[rs1];
+				end else begin
+					reg_file[rd] = reg_file[rs2];
+				end
+
+            end
+
+            CV_MINU_W : begin
+
+                `uvm_info("CV_MINU_W", "Instruction CV_MINU_W detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (reg_file[rs1] < reg_file[rs2]) begin
+					reg_file[rd] = reg_file[rs1];
+				end else begin
+					reg_file[rd] = reg_file[rs2];
+				end
+
+            end
+
             CV_SDOTSP : begin
 
                 `uvm_info("CV_SDOTSP", "Instruction CV_SDOTSP detected successfully", UVM_LOW)
@@ -3164,6 +3287,38 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd] = reg_file[rd] + reg_result;
 					end
 					iteration_mx = ~iteration_mx;
+				end
+
+            end
+
+            CV_SLE : begin
+
+                `uvm_info("CV_SLE", "Instruction CV_SLE detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if ($signed(reg_file[rs1]) <= $signed(reg_file[rs2])) begin
+					reg_file[rd] = 1;
+				end else begin
+					reg_file[rd] = 0;
+				end
+
+            end
+
+            CV_SLEU : begin
+
+                `uvm_info("CV_SLEU", "Instruction CV_SLEU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (reg_file[rs1] <= reg_file[rs2]) begin
+					reg_file[rd] = 1;
+				end else begin
+					reg_file[rd] = 0;
 				end
 
             end
