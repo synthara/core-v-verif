@@ -902,6 +902,36 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_ABS : begin
+
+                `uvm_info("CV_ABS", "Instruction CV_ABS detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_ABS_H", "Instruction CV_ABS_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if ($signed(reg_file[rs1][(i*16)+:16]) < 0) begin
+							reg_file[rd][(i*16)+:16] = -reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_ABS_B", "Instruction CV_ABS_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if ($signed(reg_file[rs1][(i*8)+:8]) < 0) begin
+							reg_file[rd][(i*8)+:8] = -reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];;
+						end
+					end
+				end
+
+            end
+
             CV_ABS_W : begin
 
                 `uvm_info("CV_ABS_W", "Instruction CV_ABS_W detected successfully", UVM_LOW)
@@ -913,6 +943,28 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					reg_file[rd] = -reg_file[rs1];
 				end else begin
 					reg_file[rd] = reg_file[rs1];
+				end
+
+            end
+
+            CV_ADD : begin
+
+                `uvm_info("CV_ADD", "Instruction CV_ADD detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_ADD_H", "Instruction CV_ADD_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] + reg_file[rs2][(i*16)+:16]) & 16'hFFFF;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_ADD_B", "Instruction CV_ADD_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] + reg_file[rs2][(i*8)+:8]) & 8'hFF;
+					end
 				end
 
             end
@@ -975,6 +1027,51 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_ADD_SC : begin
+
+                `uvm_info("CV_ADD_SC", "Instruction CV_ADD_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_ADD_SC_H", "Instruction CV_ADD_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] + reg_file[rs2][15:0]) & 16'hFFFF;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_ADD_SC_B", "Instruction CV_ADD_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] + reg_file[rs2][7:0]) & 8'hFF;
+					end
+				end
+
+            end
+
+            CV_ADD_SCI : begin
+
+                `uvm_info("CV_ADD_SCI", "Instruction CV_ADD_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_ADD_SCI_H", "Instruction CV_ADD_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] + imm6_ext[15:0]) & 16'hFFFF;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_ADD_SCI_B", "Instruction CV_ADD_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] + imm6_ext[7:0]) & 8'hFF;
+					end
+				end
+
+            end
+
             CV_ADDUN : begin
 
                 `uvm_info("CV_ADDUN", "Instruction CV_ADDUN detected successfully", UVM_LOW)
@@ -1029,6 +1126,207 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1]) + $unsigned(1 << (reg_file[rs2][4:0]-1))) >> reg_file[rs2][4:0];
 				end else begin
 					reg_file[rd] = ($unsigned(reg_file[rd]) + $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
+				end
+
+            end
+
+            CV_AND : begin
+
+                `uvm_info("CV_AND", "Instruction CV_AND detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_AND_H", "Instruction CV_AND_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] & reg_file[rs2][(i*16)+:16];
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_AND_B", "Instruction CV_AND_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] & reg_file[rs2][(i*8)+:8];
+					end
+				end
+
+            end
+
+            CV_AND_SC : begin
+
+                `uvm_info("CV_AND_SC", "Instruction CV_AND_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_AND_SC_H", "Instruction CV_AND_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] & reg_file[rs2][15:0];
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_AND_SC_B", "Instruction CV_AND_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] & reg_file[rs2][7:0];
+					end
+				end
+
+            end
+
+            CV_AND_SCI : begin
+
+                `uvm_info("CV_AND_SCI", "Instruction CV_AND_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_AND_SCI_H", "Instruction CV_AND_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] & imm6_ext[15:0];
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_AND_SCI_B", "Instruction CV_AND_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] & imm6_ext[7:0];
+					end
+				end
+
+            end
+
+            CV_AVG : begin
+
+                `uvm_info("CV_AVG", "Instruction CV_AVG detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_AVG_H", "Instruction CV_AVG_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = $signed((reg_file[rs1][(i*16)+:16] + reg_file[rs2][(i*16)+:16]) & 16'hFFFF) >>> 1;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_AVG_B", "Instruction CV_AVG_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = $signed((reg_file[rs1][(i*8)+:8] + reg_file[rs2][(i*8)+:8]) & 8'hFF) >>> 1;
+					end
+				end
+
+            end
+
+            CV_AVG_SC : begin
+
+                `uvm_info("CV_AVG_SC", "Instruction CV_AVG_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_AVG_SC_H", "Instruction CV_AVG_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = $signed((reg_file[rs1][(i*16)+:16] + reg_file[rs2][15:0]) & 16'hFFFF) >>> 1;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_AVG_SC_B", "Instruction CV_AVG_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = $signed((reg_file[rs1][(i*8)+:8] + reg_file[rs2][7:0]) & 8'hFF) >>> 1;
+					end
+				end
+
+            end
+
+            CV_AVG_SCI : begin
+
+                `uvm_info("CV_AVG_SCI", "Instruction CV_AVG_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_AVG_SCI_H", "Instruction CV_AVG_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = $signed((reg_file[rs1][(i*16)+:16] + imm6_ext[15:0]) & 16'hFFFF) >>> 1;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_AVG_SCI_B", "Instruction CV_AVG_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = $signed((reg_file[rs1][(i*8)+:8] + imm6_ext[7:0]) & 8'hFF) >>> 1;
+					end
+				end
+
+            end
+
+            CV_AVGU : begin
+
+                `uvm_info("CV_AVGU", "Instruction CV_AVGU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_AVGU_H", "Instruction CV_AVGU_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = ((reg_file[rs1][(i*16)+:16] + reg_file[rs2][(i*16)+:16]) & 16'hFFFF) >> 1;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_AVGU_B", "Instruction CV_AVGU_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = ((reg_file[rs1][(i*8)+:8] + reg_file[rs2][(i*8)+:8]) & 8'hFF) >> 1;
+					end
+				end
+
+            end
+
+            CV_AVGU_SC : begin
+
+                `uvm_info("CV_AVGU_SC", "Instruction CV_AVGU_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_AVGU_SC_H", "Instruction CV_AVGU_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = ((reg_file[rs1][(i*16)+:16] + reg_file[rs2][15:0]) & 16'hFFFF) >> 1;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_AVGU_SC_B", "Instruction CV_AVGU_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = ((reg_file[rs1][(i*8)+:8] + reg_file[rs2][7:0]) & 8'hFF) >> 1;
+					end
+				end
+
+            end
+
+            CV_AVGU_SCI : begin
+
+                `uvm_info("CV_AVGU_SCI", "Instruction CV_AVGU_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_AVGU_SCI_H", "Instruction CV_AVGU_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = ((reg_file[rs1][(i*16)+:16] + imm6_ext[15:0]) & 16'hFFFF) >> 1;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_AVGU_SCI_B", "Instruction CV_AVGU_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = ((reg_file[rs1][(i*8)+:8] + imm6_ext[7:0]) & 8'hFF) >> 1;
+					end
 				end
 
             end
@@ -2873,6 +3171,97 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_MAX : begin
+
+                `uvm_info("CV_MAX", "Instruction CV_MAX detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MAX_H", "Instruction CV_MAX_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if ($signed(reg_file[rs1][(i*16)+:16]) > $signed(reg_file[rs2][(i*16)+:16])) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs2][(i*16)+:16];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MAX_B", "Instruction CV_MAX_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if ($signed(reg_file[rs1][(i*8)+:8]) > $signed(reg_file[rs2][(i*8)+:8])) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs2][(i*8)+:8];
+						end
+					end
+				end
+
+            end
+
+            CV_MAX_SC : begin
+
+                `uvm_info("CV_MAX_SC", "Instruction CV_MAX_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MAX_SC_H", "Instruction CV_MAX_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if ($signed(reg_file[rs1][(i*16)+:16]) > $signed(reg_file[rs2][15:0])) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs2][15:0];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MAX_SC_B", "Instruction CV_MAX_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if ($signed(reg_file[rs1][(i*8)+:8]) > $signed(reg_file[rs2][7:0])) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs2][7:0];
+						end
+					end
+				end
+
+            end
+
+            CV_MAX_SCI : begin
+
+                `uvm_info("CV_MAX_SCI", "Instruction CV_MAX_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MAX_SCI_H", "Instruction CV_MAX_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if ($signed(reg_file[rs1][(i*16)+:16]) > $signed(imm6_ext[15:0])) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = imm6_ext[15:0];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MAX_SCI_B", "Instruction CV_MAX_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if ($signed(reg_file[rs1][(i*8)+:8]) > $signed(imm6_ext[7:0])) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = imm6_ext[7:0];
+						end
+					end
+				end
+
+            end
+
             CV_MAX_W : begin
 
                 `uvm_info("CV_MAX_W", "Instruction CV_MAX_W detected successfully", UVM_LOW)
@@ -2885,6 +3274,97 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					reg_file[rd] = reg_file[rs2];
 				end else begin
 					reg_file[rd] = reg_file[rs1];
+				end
+
+            end
+
+            CV_MAXU : begin
+
+                `uvm_info("CV_MAXU", "Instruction CV_MAXU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MAXU_H", "Instruction CV_MAXU_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if (reg_file[rs1][(i*16)+:16] > reg_file[rs2][(i*16)+:16]) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs2][(i*16)+:16];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MAXU_B", "Instruction CV_MAXU_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if (reg_file[rs1][(i*8)+:8] > reg_file[rs2][(i*8)+:8]) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs2][(i*8)+:8];
+						end
+					end
+				end
+
+            end
+
+            CV_MAXU_SC : begin
+
+                `uvm_info("CV_MAXU_SC", "Instruction CV_MAXU_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MAXU_SC_H", "Instruction CV_MAXU_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if (reg_file[rs1][(i*16)+:16] > reg_file[rs2][15:0]) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs2][15:0];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MAXU_SC_B", "Instruction CV_MAXU_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if (reg_file[rs1][(i*8)+:8] > reg_file[rs2][7:0]) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs2][7:0];
+						end
+					end
+				end
+
+            end
+
+            CV_MAXU_SCI : begin
+
+                `uvm_info("CV_MAXU_SCI", "Instruction CV_MAXU_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MAXU_SCI_H", "Instruction CV_MAXU_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if (reg_file[rs1][(i*16)+:16] > imm6_ext[15:0]) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = imm6_ext[15:0];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MAXU_SCI_B", "Instruction CV_MAXU_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if (reg_file[rs1][(i*8)+:8] > imm6_ext[7:0]) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = imm6_ext[7:0];
+						end
+					end
 				end
 
             end
@@ -2905,6 +3385,97 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_MIN : begin
+
+                `uvm_info("CV_MIN", "Instruction CV_MIN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MIN_H", "Instruction CV_MIN_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if ($signed(reg_file[rs1][(i*16)+:16]) < $signed(reg_file[rs2][(i*16)+:16])) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs2][(i*16)+:16];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MIN_B", "Instruction CV_MIN_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if ($signed(reg_file[rs1][(i*8)+:8]) < $signed(reg_file[rs2][(i*8)+:8])) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs2][(i*8)+:8];
+						end
+					end
+				end
+
+            end
+
+            CV_MIN_SC : begin
+
+                `uvm_info("CV_MIN_SC", "Instruction CV_MIN_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MIN_SC_H", "Instruction CV_MIN_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if ($signed(reg_file[rs1][(i*16)+:16]) < $signed(reg_file[rs2][15:0])) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs2][15:0];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MIN_SC_B", "Instruction CV_MIN_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if ($signed(reg_file[rs1][(i*8)+:8]) < $signed(reg_file[rs2][7:0])) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs2][7:0];
+						end
+					end
+				end
+
+            end
+
+            CV_MIN_SCI : begin
+
+                `uvm_info("CV_MIN_SCI", "Instruction CV_MIN_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MIN_SCI_H", "Instruction CV_MIN_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if ($signed(reg_file[rs1][(i*16)+:16]) < $signed(imm6_ext[15:0])) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = imm6_ext[15:0];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MIN_SCI_B", "Instruction CV_MIN_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if ($signed(reg_file[rs1][(i*8)+:8]) < $signed(imm6_ext[7:0])) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = imm6_ext[7:0];
+						end
+					end
+				end
+
+            end
+
             CV_MIN_W : begin
 
                 `uvm_info("CV_MIN_W", "Instruction CV_MIN_W detected successfully", UVM_LOW)
@@ -2921,6 +3492,97 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_MINU : begin
+
+                `uvm_info("CV_MINU", "Instruction CV_MINU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MINU_H", "Instruction CV_MINU_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if (reg_file[rs1][(i*16)+:16] < reg_file[rs2][(i*16)+:16]) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs2][(i*16)+:16];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MINU_B", "Instruction CV_MINU_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if (reg_file[rs1][(i*8)+:8] < reg_file[rs2][(i*8)+:8]) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs2][(i*8)+:8];
+						end
+					end
+				end
+
+            end
+
+            CV_MINU_SC : begin
+
+                `uvm_info("CV_MINU_SC", "Instruction CV_MINU_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MINU_SC_H", "Instruction CV_MINU_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if (reg_file[rs1][(i*16)+:16] < reg_file[rs2][15:0]) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs2][15:0];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MINU_SC_B", "Instruction CV_MINU_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if (reg_file[rs1][(i*8)+:8] < reg_file[rs2][7:0]) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs2][7:0];
+						end
+					end
+				end
+
+            end
+
+            CV_MINU_SCI : begin
+
+                `uvm_info("CV_MINU_SCI", "Instruction CV_MINU_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MINU_SCI_H", "Instruction CV_MINU_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						if (reg_file[rs1][(i*16)+:16] < imm6_ext[15:0]) begin
+							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
+						end else begin
+							reg_file[rd][(i*16)+:16] = imm6_ext[15:0];
+						end
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MINU_SCI_B", "Instruction CV_MINU_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						if (reg_file[rs1][(i*8)+:8] < imm6_ext[7:0]) begin
+							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
+						end else begin
+							reg_file[rd][(i*8)+:8] = imm6_ext[7:0];
+						end
+					end
+				end
+
+            end
+
             CV_MINU_W : begin
 
                 `uvm_info("CV_MINU_W", "Instruction CV_MINU_W detected successfully", UVM_LOW)
@@ -2933,6 +3595,73 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					reg_file[rd] = reg_file[rs1];
 				end else begin
 					reg_file[rd] = reg_file[rs2];
+				end
+
+            end
+
+            CV_OR : begin
+
+                `uvm_info("CV_OR", "Instruction CV_OR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_OR_H", "Instruction CV_OR_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] | reg_file[rs2][(i*16)+:16];
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_OR_B", "Instruction CV_OR_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] | reg_file[rs2][(i*8)+:8];
+					end
+				end
+
+            end
+
+            CV_OR_SC : begin
+
+                `uvm_info("CV_OR_SC", "Instruction CV_OR_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_OR_SC_H", "Instruction CV_OR_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] | reg_file[rs2][15:0];
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_OR_SC_B", "Instruction CV_OR_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] | reg_file[rs2][7:0];
+					end
+				end
+
+            end
+
+            CV_OR_SCI : begin
+
+                `uvm_info("CV_OR_SCI", "Instruction CV_OR_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_OR_SCI_H", "Instruction CV_OR_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] | imm6_ext[15:0];
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_OR_SCI_B", "Instruction CV_OR_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] | imm6_ext[7:0];
+					end
 				end
 
             end
@@ -3323,6 +4052,229 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_SLL : begin
+
+                `uvm_info("CV_SLL", "Instruction CV_SLL detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SLL_H", "Instruction CV_SLL_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] << (reg_file[rs2][(i*16)+:16] & 16'h000F);
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SLL_B", "Instruction CV_SLL_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] << (reg_file[rs2][(i*8)+:8] & 8'h07);
+					end
+				end
+
+            end
+
+            CV_SLL_SC : begin
+
+                `uvm_info("CV_SLL_SC", "Instruction CV_SLL_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SLL_SC_H", "Instruction CV_SLL_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] << (reg_file[rs2][15:0] & 16'h000F);
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SLL_SC_B", "Instruction CV_SLL_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] << (reg_file[rs2][7:0] & 8'h07);
+					end
+				end
+
+            end
+
+            CV_SLL_SCI : begin
+
+                `uvm_info("CV_SLL_SCI", "Instruction CV_SLL_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SLL_SCI_H", "Instruction CV_SLL_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] << (imm6_ext[15:0] & 16'h000F);
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SLL_SCI_B", "Instruction CV_SLL_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] << (imm6_ext[7:0] & 8'h07);
+					end
+				end
+
+            end
+
+            CV_SRA : begin
+
+                `uvm_info("CV_SRA", "Instruction CV_SRA detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SRA_H", "Instruction CV_SRA_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = $signed(reg_file[rs1][(i*16)+:16]) >>> (reg_file[rs2][(i*16)+:16] & 16'h000F);
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SRA_B", "Instruction CV_SRA_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = $signed(reg_file[rs1][(i*8)+:8]) >>> (reg_file[rs2][(i*8)+:8] & 8'h07);
+					end
+				end
+
+            end
+
+            CV_SRA_SC : begin
+
+                `uvm_info("CV_SRA_SC", "Instruction CV_SRA_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SRA_SC_H", "Instruction CV_SRA_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = $signed(reg_file[rs1][(i*16)+:16]) >>> (reg_file[rs2][15:0] & 16'h000F);
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SRA_SC_B", "Instruction CV_SRA_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = $signed(reg_file[rs1][(i*8)+:8]) >>> (reg_file[rs2][7:0] & 8'h07);
+					end
+				end
+
+            end
+
+            CV_SRA_SCI : begin
+
+                `uvm_info("CV_SRA_SCI", "Instruction CV_SRA_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SRA_SCI_H", "Instruction CV_SRA_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = $signed(reg_file[rs1][(i*16)+:16]) >>> (imm6_ext[15:0] & 16'h000F);
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SRA_SCI_B", "Instruction CV_SRA_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = $signed(reg_file[rs1][(i*8)+:8]) >>> (imm6_ext[7:0] & 8'h07);
+					end
+				end
+
+            end
+
+            CV_SRL : begin
+
+                `uvm_info("CV_SRL", "Instruction CV_SRL detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SRL_H", "Instruction CV_SRL_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] >> (reg_file[rs2][(i*16)+:16] & 16'h000F);
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SRL_B", "Instruction CV_SRL_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] >> (reg_file[rs2][(i*8)+:8] & 8'h07);
+					end
+				end
+
+            end
+
+            CV_SRL_SC : begin
+
+                `uvm_info("CV_SRL_SC", "Instruction CV_SRL_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SRL_SC_H", "Instruction CV_SRL_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] >> (reg_file[rs2][15:0] & 16'h000F);
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SRL_SC_B", "Instruction CV_SRL_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] >> (reg_file[rs2][7:0] & 8'h07);
+					end
+				end
+
+            end
+
+            CV_SRL_SCI : begin
+
+                `uvm_info("CV_SRL_SCI", "Instruction CV_SRL_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SRL_SCI_H", "Instruction CV_SRL_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] >> (imm6_ext[15:0] & 16'h000F);
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SRL_SCI_B", "Instruction CV_SRL_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] >> (imm6_ext[7:0] & 8'h07);
+					end
+				end
+
+            end
+
+            CV_SUB : begin
+
+                `uvm_info("CV_SUB", "Instruction CV_SUB detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SUB_H", "Instruction CV_SUB_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] - reg_file[rs2][(i*16)+:16]) & 16'hFFFF;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SUB_B", "Instruction CV_SUB_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] - reg_file[rs2][(i*8)+:8]) & 8'hFF;
+					end
+				end
+
+            end
+
             CV_SUBN : begin
 
                 `uvm_info("CV_SUBN", "Instruction CV_SUBN detected successfully", UVM_LOW)
@@ -3381,6 +4333,51 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_SUB_SC : begin
+
+                `uvm_info("CV_SUB_SC", "Instruction CV_SUB_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SUB_SC_H", "Instruction CV_SUB_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] - reg_file[rs2][15:0]) & 16'hFFFF;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SUB_SC_B", "Instruction CV_SUB_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] - reg_file[rs2][7:0]) & 8'hFF;
+					end
+				end
+
+            end
+
+            CV_SUB_SCI : begin
+
+                `uvm_info("CV_SUB_SCI", "Instruction CV_SUB_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_SUB_SCI_H", "Instruction CV_SUB_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] - imm6_ext[15:0]) & 16'hFFFF;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_SUB_SCI__B", "Instruction CV_SUB_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] - imm6_ext[7:0]) & 8'hFF;
+					end
+				end
+
+            end
+
             CV_SUBUN : begin
 
                 `uvm_info("CV_SUBUN", "Instruction CV_SUBUN detected successfully", UVM_LOW)
@@ -3435,6 +4432,73 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					reg_file[rd] = ($unsigned(reg_file[rd]) - $unsigned(reg_file[rs1]) + $unsigned(1 << (reg_file[rs2][4:0]-1))) >> reg_file[rs2][4:0];
 				end else begin
 					reg_file[rd] = ($unsigned(reg_file[rd]) - $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
+				end
+
+            end
+
+            CV_XOR : begin
+
+                `uvm_info("CV_XOR", "Instruction CV_XOR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_XOR_H", "Instruction CV_XOR_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] ^ reg_file[rs2][(i*16)+:16];
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_XOR_B", "Instruction CV_XOR_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] ^ reg_file[rs2][(i*8)+:8];
+					end
+				end
+
+            end
+
+            CV_XOR_SC : begin
+
+                `uvm_info("CV_XOR_SC", "Instruction CV_XOR_SC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_XOR_SC_H", "Instruction CV_XOR_SC_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] ^ reg_file[rs2][15:0];
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_XOR_SC_B", "Instruction CV_XOR_SC_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] ^ reg_file[rs2][7:0];
+					end
+				end
+
+            end
+
+            CV_XOR_SCI : begin
+
+                `uvm_info("CV_XOR_SCI", "Instruction CV_XOR_SCI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm6 = instr[25:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_XOR_SCI_H", "Instruction CV_XOR_SCI_H detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] ^ imm6_ext[15:0];
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_XOR_SCI_B", "Instruction CV_XOR_SCI_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 4; i++) begin
+						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] ^ imm6_ext[7:0];
+					end
 				end
 
             end

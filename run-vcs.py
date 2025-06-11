@@ -330,6 +330,8 @@ if __name__ == "__main__":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_dotpsimd_test/simple_cv_dotpsimd_test.S"
     elif program_name == "simple_cv_genalu_test":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_genalu_test/simple_cv_genalu_test.S"
+    elif program_name == "simple_cv_gensimd_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_gensimd_test/simple_cv_gensimd_test.S"
     else:
         crt0_path = f"{CORE_TB_PATH}/bsp/crt0.S"
         
