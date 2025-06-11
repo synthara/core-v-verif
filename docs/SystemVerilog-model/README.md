@@ -106,3 +106,7 @@ Added the extension .mh to the dotpsimd instrcutions, the test has been updated,
 ## 06/06/2025 push
 
 Creation of model and test for rv_genalu instructions, test containing almost a ten thousand instructions alongside i, m and c instructions randomly. Test has been performed with 0 errors. P.S. My model recognises cv.abs, cv.min, cv.minu, cv.max, cv.maxu with a '.w' on their end, that's because in another set there are some other instructions with the same name. Thus I used the .w on the end so that in the autogenertion of the case there is no incongruence in the instructions name ( because I'm autogenerating the instructions' implementation based on instruction name ).
+
+## 10 and 11/06/2025 push
+
+Creation of model and test for both rv_mac32 and rv_gensimd instructions, test containing 10k instructions for the second packet and a thousand for the first one ( just because rv_mac32 instr are basically 2 instructions, while gensimd are almost 100 ). The test has been created and passed with 0 errors for both instructions packets. 

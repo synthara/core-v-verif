@@ -3171,6 +3171,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_MAC : begin
+
+                `uvm_info("CV_MAC", "Instruction CV_MAC detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				`uvm_info("CV_MAC", "Instruction CV_MAC detected successfully", UVM_LOW);
+				reg_file[rd] = reg_file[rd] + (reg_file[rs1] * reg_file[rs2]);
+
+            end
+
             CV_MAX : begin
 
                 `uvm_info("CV_MAX", "Instruction CV_MAX detected successfully", UVM_LOW)
@@ -3596,6 +3609,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				end else begin
 					reg_file[rd] = reg_file[rs2];
 				end
+
+            end
+
+            CV_MSU : begin
+
+                `uvm_info("CV_MSU", "Instruction CV_MSU detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				`uvm_info("CV_MSU", "Instruction CV_MSU detected successfully", UVM_LOW);
+				reg_file[rd] = reg_file[rd] - (reg_file[rs1] * reg_file[rs2]);
 
             end
 
