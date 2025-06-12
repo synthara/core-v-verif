@@ -138,7 +138,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
     bit [31:0] imm6_ext;
     bit [31:0] reg_result;
     bit iteration_mx = 0;
-    bit [15:0] reg_mac_prov;
+    bit [15:0] reg_mac_mul_prov;
 
 
     uvma_rvfi_instr_seq_item_c#(32, 32) rvfi_instr_seq_item;
@@ -3199,8 +3199,8 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
 					`uvm_info("CV_MACHHSN_B", "Instruction CV_MACHHSN_B detected successfully", UVM_LOW);
 					for (int i = 0; i < 2; i++) begin
-						reg_mac_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
-						reg_file[rd][(i*16)+:16] = $signed(reg_mac_prov) >>> ls3;
+						reg_mac_mul_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
+						reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
 					end
 				end
 
@@ -3226,13 +3226,13 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					`uvm_info("CV_MACHHSRN_B", "Instruction CV_MACHHSRN_B detected successfully", UVM_LOW);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
-							reg_mac_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}) + (1 << (ls3-1)));
-							reg_file[rd][(i*16)+:16] = $signed(reg_mac_prov) >>> ls3;
+							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}) + (1 << (ls3-1)));
+							reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
 						end
 					end else begin
 						for (int i = 0; i < 2; i++) begin
-							reg_mac_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
-							reg_file[rd][(i*16)+:16] = $signed(reg_mac_prov) >>> ls3;
+							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
+							reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
 						end
 					end
 				end
@@ -3254,8 +3254,8 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
 					`uvm_info("CV_MACHHUN_B", "Instruction CV_MACHHUN_B detected successfully", UVM_LOW);
 					for (int i = 0; i < 2; i++) begin
-						reg_mac_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + reg_file[rd][(i*16)+:16]);
-						reg_file[rd][(i*16)+:16] = reg_mac_prov >> ls3;
+						reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + reg_file[rd][(i*16)+:16]);
+						reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
 					end
 				end
 
@@ -3281,13 +3281,13 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					`uvm_info("CV_MACHHURN_B", "Instruction CV_MACHHURN_B detected successfully", UVM_LOW);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
-							reg_mac_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + reg_file[rd][(i*16)+:16] + (1 << (ls3-1)));
-							reg_file[rd][(i*16)+:16] = reg_mac_prov >> ls3;
+							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + reg_file[rd][(i*16)+:16] + (1 << (ls3-1)));
+							reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
 						end
 					end else begin
 						for (int i = 0; i < 2; i++) begin
-							reg_mac_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + reg_file[rd][(i*16)+:16]);
-							reg_file[rd][(i*16)+:16] = reg_mac_prov >> ls3;
+							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + reg_file[rd][(i*16)+:16]);
+							reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
 						end
 					end
 				end
@@ -3309,8 +3309,8 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
 					`uvm_info("CV_MACSN_B", "Instruction CV_MACSN_B detected successfully", UVM_LOW);
 					for (int i = 0; i < 2; i++) begin
-						reg_mac_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
-						reg_file[rd][(i*16)+:16] = $signed(reg_mac_prov) >>> ls3;
+						reg_mac_mul_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
+						reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
 					end
 				end
 
@@ -3336,13 +3336,13 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					`uvm_info("CV_MACSRN_B", "Instruction CV_MACSRN_B detected successfully", UVM_LOW);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
-							reg_mac_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}) + (1 << (ls3-1)));
-							reg_file[rd][(i*16)+:16] = $signed(reg_mac_prov) >>> ls3;
+							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}) + (1 << (ls3-1)));
+							reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
 						end
 					end else begin
 						for (int i = 0; i < 2; i++) begin
-							reg_mac_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
-							reg_file[rd][(i*16)+:16] = $signed(reg_mac_prov) >>> ls3;
+							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
+							reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
 						end
 					end
 				end
@@ -3364,8 +3364,8 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
 					`uvm_info("CV_MACUN_B", "Instruction CV_MACUN_B detected successfully", UVM_LOW);
 					for (int i = 0; i < 2; i++) begin
-						reg_mac_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + reg_file[rd][(i*16)+:16]);
-						reg_file[rd][(i*16)+:16] = reg_mac_prov >> ls3;
+						reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + reg_file[rd][(i*16)+:16]);
+						reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
 					end
 				end
 
@@ -3391,13 +3391,13 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					`uvm_info("CV_MACURN_B", "Instruction CV_MACURN_B detected successfully", UVM_LOW);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
-							reg_mac_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + reg_file[rd][(i*16)+:16] + (1 << (ls3-1)));
-							reg_file[rd][(i*16)+:16] = reg_mac_prov >> ls3;
+							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + reg_file[rd][(i*16)+:16] + (1 << (ls3-1)));
+							reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
 						end
 					end else begin
 						for (int i = 0; i < 2; i++) begin
-							reg_mac_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + reg_file[rd][(i*16)+:16]);
-							reg_file[rd][(i*16)+:16] = reg_mac_prov >> ls3;
+							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + reg_file[rd][(i*16)+:16]);
+							reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
 						end
 					end
 				end
@@ -3841,6 +3841,226 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = reg_file[rd] - (reg_file[rs1] * reg_file[rs2]);
+
+            end
+
+            CV_MULHHSN : begin
+
+                `uvm_info("CV_MULHHSN", "Instruction CV_MULHHSN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MULHHSN_H", "Instruction CV_MULHHSN_H detected successfully", UVM_LOW);
+					reg_file[rd] = $signed({{16{reg_file[rs1][31]}}, reg_file[rs1][31:16]} * {{16{reg_file[rs2][31]}}, reg_file[rs2][31:16]}) >>> ls3;
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MULHHSN_B", "Instruction CV_MULHHSN_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_mac_mul_prov = $signed({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]});
+						reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
+					end
+				end
+
+            end
+
+            CV_MULHHSRN : begin
+
+                `uvm_info("CV_MULHHSRN", "Instruction CV_MULHHSRN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MULHHSRN_H", "Instruction CV_MULHHSRN_H detected successfully", UVM_LOW);
+					if (ls3 != 0) begin
+						reg_file[rd] = $signed(({{16{reg_file[rs1][31]}}, reg_file[rs1][31:16]} * {{16{reg_file[rs2][31]}}, reg_file[rs2][31:16]}) + (1 << (ls3-1))) >>> ls3;
+					end else begin
+						reg_file[rd] = $signed({{16{reg_file[rs1][31]}}, reg_file[rs1][31:16]} * {{16{reg_file[rs2][31]}}, reg_file[rs2][31:16]}) >>> ls3;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MULHHSRN_B", "Instruction CV_MULHHSRN_B detected successfully", UVM_LOW);
+					if (ls3 != 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + (1 << (ls3-1)));
+							reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_mac_mul_prov = $signed({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]});
+							reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
+						end
+					end
+				end
+
+            end
+
+            CV_MULHHUN : begin
+
+                `uvm_info("CV_MULHHUN", "Instruction CV_MULHHUN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MULHHUN_H", "Instruction CV_MULHHUN_H detected successfully", UVM_LOW);
+					reg_file[rd] = ({{16{1'b0}}, reg_file[rs1][31:16]} * {{16{1'b0}}, reg_file[rs2][31:16]}) >> ls3;
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MULHHUN_B", "Instruction CV_MULHHUN_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_mac_mul_prov = ({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]});
+						reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
+					end
+				end
+
+            end
+
+            CV_MULHHURN : begin
+
+                `uvm_info("CV_MULHHURN", "Instruction CV_MULHHURN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MULHHURN_H", "Instruction CV_MULHHURN_H detected successfully", UVM_LOW);
+					if (ls3 != 0) begin
+						reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][31:16]} * {{16{1'b0}}, reg_file[rs2][31:16]}) + (1 << (ls3-1))) >> ls3;
+					end else begin
+						reg_file[rd] = ({{16{1'b0}}, reg_file[rs1][31:16]} * {{16{1'b0}}, reg_file[rs2][31:16]}) >> ls3;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MULHHURN_B", "Instruction CV_MULHHURN_B detected successfully", UVM_LOW);
+					if (ls3 != 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + (1 << (ls3-1)));
+							reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_mac_mul_prov = ({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]});
+							reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
+						end
+					end
+				end
+
+            end
+
+            CV_MULSN : begin
+
+                `uvm_info("CV_MULSN", "Instruction CV_MULSN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MULSN_H", "Instruction CV_MULSN_H detected successfully", UVM_LOW);
+					reg_file[rd] = $signed({{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]}) >>> ls3;
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MULSN_B", "Instruction CV_MULSN_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_mac_mul_prov = $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
+						reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
+					end
+				end
+
+            end
+
+            CV_MULSRN : begin
+
+                `uvm_info("CV_MULSRN", "Instruction CV_MULSRN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MULSRN_H", "Instruction CV_MULSRN_H detected successfully", UVM_LOW);
+					if (ls3 != 0) begin
+						reg_file[rd] = $signed(({{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]}) + (1 << (ls3-1))) >>> ls3;
+					end else begin
+						reg_file[rd] = $signed({{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]}) >>> ls3;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MULSRN_B", "Instruction CV_MULSRN_B detected successfully", UVM_LOW);
+					if (ls3 != 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + (1 << (ls3-1)));
+							reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_mac_mul_prov = $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
+							reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
+						end
+					end
+				end
+
+            end
+
+            CV_MULUN : begin
+
+                `uvm_info("CV_MULUN", "Instruction CV_MULUN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MULUN_H", "Instruction CV_MULUN_H detected successfully", UVM_LOW);
+					reg_file[rd] = ({{16{1'b0}}, reg_file[rs1][15:0]} * {{16{1'b0}}, reg_file[rs2][15:0]}) >> ls3;
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MULUN_B", "Instruction CV_MULUN_B detected successfully", UVM_LOW);
+					for (int i = 0; i < 2; i++) begin
+						reg_mac_mul_prov = ({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]});
+						reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
+					end
+				end
+
+            end
+
+            CV_MULURN : begin
+
+                `uvm_info("CV_MULURN", "Instruction CV_MULURN detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                ls3 = instr[29:25];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				if (csr_reg_file[12'h0A0] == 2) begin
+					`uvm_info("CV_MULURN_H", "Instruction CV_MULURN_H detected successfully", UVM_LOW);
+					if (ls3 != 0) begin
+						reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][15:0]} * {{16{1'b0}}, reg_file[rs2][15:0]}) + (1 << (ls3-1))) >> ls3;
+					end else begin
+						reg_file[rd] = ({{16{1'b0}}, reg_file[rs1][15:0]} * {{16{1'b0}}, reg_file[rs2][15:0]}) >> ls3;
+					end
+				end else if (csr_reg_file[12'h0A0] == 1) begin
+					`uvm_info("CV_MULURN_B", "Instruction CV_MULURN_B detected successfully", UVM_LOW);
+					if (ls3 != 0) begin
+						for (int i = 0; i < 2; i++) begin
+							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + (1 << (ls3-1)));
+							reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
+						end
+					end else begin
+						for (int i = 0; i < 2; i++) begin
+							reg_mac_mul_prov = ({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]});
+							reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
+						end
+					end
+				end
 
             end
 
