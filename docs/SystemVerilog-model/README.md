@@ -110,3 +110,7 @@ Creation of model and test for rv_genalu instructions, test containing almost a 
 ## 10 and 11/06/2025 push
 
 Creation of model and test for both rv_mac32 and rv_gensimd instructions, test containing 10k instructions for the second packet and a thousand for the first one ( just because rv_mac32 instr are basically 2 instructions, while gensimd are almost 100 ). The test has been created and passed with 0 errors for both instructions packets. 
+
+## 12/06/2025 push
+
+Creation of model and test for rv_mac168 instructions. The model has been implemented by adding a provisional register for mac.b instr to save part of the instruction computation in it. That's because the shift of ls3 bits was not computed correctly in one unique expression. The expression was splitted in two half, one that compute the add and mul, then the result is saved in this register, that is consequently used for the shift. I discussed with Francesco this problem, and that's probably because all computations in the rtl are performed on 16 bits for mac.b instr, while in the model, there could be the possibility that some variable, even if on 16 bit, is extended to perform a shift larger than 16 bits ( ls3 has 5 bits ---> max shift allowed is 32 ). The test has been passed with 0 errors for all the instructions.
