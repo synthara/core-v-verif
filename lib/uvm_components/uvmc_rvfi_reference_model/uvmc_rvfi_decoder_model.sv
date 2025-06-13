@@ -5448,8 +5448,9 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
             WFI : begin
 
                 `uvm_info("WFI", "Instruction WFI detected successfully", UVM_LOW)
-                // wfi: wait for interrupt (treated as no-op in this model)
+                // wfi: wait for interrupt (treated as no-op in this model, it also sets the end of the simulation)
 				incr = 0;
+				rvfi_instr_seq_item.halt = 1;
 
             end
 
