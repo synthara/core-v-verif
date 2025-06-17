@@ -9,6 +9,11 @@ allowed_marches = [
     "rv32imc",
     "rv32im_zicsr",
     "rv32imc_zicsr",
+    "rv32imc_zicsr_xcvalu",
+    "rv32imc_zicsr_xcvsimd",
+    "rv32imc_zicsr_xcvalu_xcvsimd",
+    "rv32imc_zicsr_xcvalu_xcvsimd_xcvmac",
+    "rv32imc_zicsr_xcvalu_xcvsimd_xcvmac_xcvmem",
 ]
 
 allowed_toolchains = [
@@ -23,6 +28,8 @@ allowed_toolchains = [
 parser = argparse.ArgumentParser()
 parser.add_argument("-out_dir", help="Output directory for the simulation results")
 parser.add_argument("-gui", help="Run the simulation in GUI mode", action="store_true")
+parser.add_argument("-cop", help="Compile the coprocessor as well", action="store_true")
+parser.add_argument("-dmv", help="Compile the data mover as well", action="store_true")
 parser.add_argument(
     "-sw_only", help="Compile only the SW, not the HW", action="store_true"
 )
@@ -72,6 +79,8 @@ if __name__ == "__main__":
     
     # Default define
     test_define = ""
+
+    additional_filelist = ""
 
     args = parser.parse_args()
 
@@ -225,6 +234,19 @@ if __name__ == "__main__":
     CV_CORE_MANIFEST = f"{CV_CORE_PKG}/{CV_CORE_LC}_manifest.flist"
     os.environ["DESIGN_RTL_DIR"] = f"{CV_CORE_PKG}/rtl"
 
+    if args.cop:
+        os.environ["RVV_PATH"] = f"{CV_CORE_PKG}/../coproc_xcs"
+        os.environ["DSL_PATH"] = f"{CV_CORE_PKG}/../coproc_xcs/src/dsl"
+
+        additional_filelist += f"-f {CORE_V_VERIF}/core-v-cores/coproc_xcs/coproc.fl "
+
+    if args.dmv:
+        os.environ["DSL_PATH"] = f"{CV_CORE_PKG}/../coproc_xcs/src/dsl"
+        os.environ["DMV_PATH"] = f"{CV_CORE_PKG}/../smart_LSU"
+
+        additional_filelist += f"-f {CORE_V_VERIF}/core-v-cores/smart_LSU/datamover.fl "
+
+
     os.environ["DPI_DASM_ROOT"] = "{CORE_V_VERIF}/lib/dpi_dasm"
 
     ## DRI DEFINITION
@@ -302,7 +324,29 @@ if __name__ == "__main__":
     ################ SELECT THE CRT0 AND LINKER #######################
     ###################################################################
     if program_name == "riscv_arithmetic_basic_test_0":
-        crt0_path = f"{CORE_V_VERIF}/tests/programs/custom/riscv_arithmetic_basic_test_0/riscv_arithmetic_basic_test_0.S"
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/riscv_arithmetic_basic_test_0/riscv_arithmetic_basic_test_0.S"
+    elif program_name == "simple_cv_addsub_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_addsub_test/simple_cv_addsub_test.S"
+    elif program_name == "simple_cv_addsubls3_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_addsubls3_test/simple_cv_addsubls3_test.S"
+    elif program_name == "simple_cv_clip_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_clip_test/simple_cv_clip_test.S"
+    elif program_name == "simple_cv_cmpsimd_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_cmpsimd_test/simple_cv_cmpsimd_test.S"
+    elif program_name == "simple_cv_dotpsimd_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_dotpsimd_test/simple_cv_dotpsimd_test.S"
+    elif program_name == "simple_cv_genalu_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_genalu_test/simple_cv_genalu_test.S"
+    elif program_name == "simple_cv_gensimd_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_gensimd_test/simple_cv_gensimd_test.S"
+    elif program_name == "simple_cv_mac32_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_mac32_test/simple_cv_mac32_test.S"
+    elif program_name == "simple_cv_mac168_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_mac168_test/simple_cv_mac168_test.S"
+    elif program_name == "simple_cv_mul168_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_mul168_test/simple_cv_mul168_test.S"          
+    elif program_name == "simple_cv_postinc_load_store_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_postinc_load_store_test/simple_cv_postinc_load_store_test.S" 
     else:
         crt0_path = f"{CORE_TB_PATH}/bsp/crt0.S"
         
@@ -319,7 +363,7 @@ if __name__ == "__main__":
     # if uvm_test_name == "rec_tb_cor_axi_test_drive_both_computeram_no_fw_preload":
     #     crt0_path = f"{CORE_V_VERIF}/design/top/rec/scripts/c/dram_system/crt0.S"
 
-    if program_name in ["hello-world", "fibonacci"]:
+    if program_name in ["hello-world", "fibonacci", "csr_instructions", "branch_zero"]:
         c_files = f"{CORE_TB_PATH}/tests/programs/custom/{program_name}/{program_name}.c"
     elif program_name == "coremark":
         c_files = f"-DITERATIONS=1 \
@@ -415,6 +459,7 @@ if __name__ == "__main__":
         "elf_file": elf_file,
         "hex_file": hex_file,
         "itb_file": itb_file,
+        "additional_filelist": additional_filelist
     }
 
     google_compile_cmd = fmt.google_compile_cmd.format(**fmt_dict)

@@ -70,3 +70,61 @@ Extension rv_addsubls3 added to the model, same verification issues of previous 
 ## 22/05/2025 push
 
 ReadmeTOT.md created in order to explain all the high level model
+
+
+
+## 26/05/2025 push
+
+Interface connection to the scoreboard has been fixed (before the model was not able to rely on the scoreboard on debugging the instructions), thus, decode_opcode function now returns the object interface, not anymore the pc, and also the function step had a bug inside it. Thanks to this fix, it's been possible to fix some problem regarding some m instructions, in particular rem, div and mulhsu. Another problem that has been fixed was the incompatibility of c instructions coding in the model, because in my model all the instructions were loaded from the memory 4 byte at times, but for c instructions only the last two are really needed. Because of this, in each c instruction case, here is an & between the instruction and 0x0000FFFF, in order to kill the first 16 bits. Three test programs have been tested and passed succesfully (hello-world, fibonacci and riscv_arithmetic_basic_test_0 ), and all the instructions inside them are correct also in the model. Few of the imc instructions need to be tested yet, in particular c_ebreak, c_nop, csrrc, csrrci, csrrsi, csrrwi, ebreak, ecall, fence, lb
+
+
+## 28/05/2025 push
+
+Added coprocessor and smart_LSU rtl to the model, the to include these devices to the verification model has to be given through the shell, by selecting -cop and -dmv respectively for the coprocessor and the smart_LSU ( It's better to add both of them or none, otherwise the model will not work because some filelist needed for the coproc are in the smart_LSU ), plus csr instructions have been fixed ( csr test instructions is not working, because some bits of some csr registers are hardcoded, and so I would need a bit mask for each register of the csr_register_file, but csr instructions implementation is correct in the model ). Next step is performing some tests with cv instr.
+
+
+## 30/05/2025 push
+
+Creation of new tests for some set of instructions. Instructions tested are cv_addsub instructions, and cv_addsublse instructions. A new test for both instructions has been created, in particular each test contains a hundred of cv instruction (addsub for the first test, addsubls3 for the second one), alongside some i, m or c instructions put randomly on the assembly code. To perform the new test, you have to add the program name to the run_vcs.py script. Both tests are terminated with 0 errors.
+
+## 02/06/2025 push
+
+Creation of model and test for clip instructions, test containing almost a thousand instructions alongside i, m and c instructions randomly. To perform the new test, you have to add the program name to the run_vcs.py script. Test terminated with 0 errors.
+
+## 03/06/2025 push
+
+Creation of model and test for cmpsimd instructions, test containing almost a thousand instructions alongside i, m and c instructions randomly. These new instructions could work either on .h or .b mode. Before the instruction arrive to the compiler, the only encoding recognisable by our compiler is the .h one. Now you are asking yourself: how could I handle the cv.cmpsimd.b instructions if the compiler doesn't recognise their encoding? Basically for our compiler, cv.cmpsimd.h and cv.cmpsimd.b instructions are literally the same instruction ( they have the same encoding ---> the cv.cmpsimd.h one, so if you are writing an assembly test file, you should put only these type of instructions, otherwise if you are putting a cv.cmpsimd instructions, its encoding will not be recognised by the compiler ). The rtl is able to differentiate the different instructions by checking the SIMD_DP csr register, so for the core, but also for the reference model, the instruction switch from .h to .b, or viceversa, only if there is a csrrwi inside the SIMD_DP register. Test has been performed with both .h and .b instructions ( some csrrwi was inserted ). Test has been passed with 0 errors.
+
+## 04/06/2025 push
+
+Creation of model and test for dotpsimd instructions, test containing almost a ten thousand instructions alongside i, m and c instructions randomly. Also this instructions can work in b or h mode, both have been implemented and tested correctly. mx format is still missing, because it is not clear wheter you need more operands than the ones contained in the variable fields. Test has been performed with both .h and .b instructions ( some csrrwi was inserted ). Test has been passed with 0 errors.
+
+## 05/06/2025 push
+
+Added the extension .mh to the dotpsimd instrcutions, the test has been updated, but pay attention: all mx instructions MUST be in couples, because 2 iterations needs to be performed in order to have the correct result ( the compiler apparently knows this ). So if you are trying to write different mx instructions inside a assembly file, you need to MANTAIN rd and op2, and you MUST CHANGE rs1. Only in this way the operation performed by the rtl ( and also the testbench ) will be correct. Test has been passed with 0 errors. Two new signals have been added in the autogen model: reg_result to save an inside of a register during a computation in the dotp instructions and iteration_mx, a bit that is used to recognise in ehich branch of the mx instructions we currently are.
+
+## 06/06/2025 push
+
+Creation of model and test for rv_genalu instructions, test containing almost a ten thousand instructions alongside i, m and c instructions randomly. Test has been performed with 0 errors. P.S. My model recognises cv.abs, cv.min, cv.minu, cv.max, cv.maxu with a '.w' on their end, that's because in another set there are some other instructions with the same name. Thus I used the .w on the end so that in the autogenertion of the case there is no incongruence in the instructions name ( because I'm autogenerating the instructions' implementation based on instruction name ).
+
+## 10 and 11/06/2025 push
+
+Creation of model and test for both rv_mac32 and rv_gensimd instructions, test containing 10k instructions for the second packet and a thousand for the first one ( just because rv_mac32 instr are basically 2 instructions, while gensimd are almost 100 ). The test has been created and passed with 0 errors for both instructions packets. 
+
+## 12/06/2025 push
+
+Creation of model and test for rv_mac168 instructions. The model has been implemented by adding a provisional register for mac.b instr to save part of the instruction computation in it. That's because the shift of ls3 bits was not computed correctly in one unique expression. The expression was splitted in two half, one that compute the add and mul, then the result is saved in this register, that is consequently used for the shift. I discussed with Francesco this problem, and that's probably because all computations in the rtl are performed on 16 bits for mac.b instr, while in the model, there could be the possibility that some variable, even if on 16 bit, is extended to perform a shift larger than 16 bits ( ls3 has 5 bits ---> max shift allowed is 32 ). The test has been passed with 0 errors for all the instructions. In another push I pushed the rv_168 mul instructions. Since the implementation is very similar, I used the same register I was using for mac168 operations to save an intermediate result. I renamed it to reg_mac_mul_prov since it's used by both instructions. Test has been passed with 0 errors also for this set of instructions. 
+
+## 13/06/2025 push
+
+Cv instruction have been all added to the model, but every time a test was finishing, it was going in a loop somewhere forever. The problem is that whenever spike is detecting a wfi instruction, it just sets up a bit ( halt bit ). The bit is not setted by a SystemVerilog file but, I suppose, in the C++ part DPI. Since thi bit was never setted to 1 in our model by anyone, the scoreboard couldn't know that the simulation was finished:
+
+if (t_reference_model.halt || (sentinel_enable && (sentinel_value == t_reference_model.insn)))
+    sim_finished = 1;
+
+Here we can see that the bit sim_finished is setted to 1, only if the condition above is satisfied, but since noone was setting t_reference_model.halt  (spike does it, our model no), the simulation wasn't finishing and was going on a loop in the scoreboard. To get up to this problem I added a line in the wfi instruction that set the halt bit whenever detected. In this way the simulation was finishing for basic test. Concerning the added cv tests, they were still not finishing, because it's not enough writing wfi at the end of an assembly file to make the simulation stop. The correct way to write is j _test_pass, because there are more things the hardware have to do other than execute the wfi to make the simulation stop ( there are some stores and shift instructions ). I replaced the wfi with this j _test_pass, and now all tests are performed and finished as expected 
+
+
+## 17/06/2025 push
+
+Cv postinc load and store instructions have been added to the model. Implementation seems correct, but because I created the test, and I am bad at creating tests, sometimes there are mismatch in the result written in the memory. This happens because sometimes the address is too high and the memory isn't big enough to make an access to that address. Also sometimes there are probelms if there is the same register in two var fields. It happens also when they are all different but I don't get why ( maybe because the test has no sense at all, there are only load and store put randomly by chatgpt in the file ). Maybe a real test could be useful, also because the implementation after a lot of time debuggig seems correct to me

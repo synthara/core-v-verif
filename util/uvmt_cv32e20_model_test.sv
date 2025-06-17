@@ -28,7 +28,7 @@ endclass: uvmt_cv32e20_model_test_c
 
 class uvme_cv32e20_sb_dual_ref_c extends uvme_cv32e20_sb_c;
 
-    uvmc_rvfi_scoreboard_c#(ILEN, XLEN) m_rvfi_scoreboard2;
+    uvmc_rvfi_scoreboard_c#(ILEN, uvme_cv32e20_pkg::XLEN) m_rvfi_scoreboard2;
 
     `uvm_component_utils_begin(uvme_cv32e20_sb_dual_ref_c)
         `uvm_field_object(cfg, UVM_DEFAULT)
@@ -44,7 +44,7 @@ class uvme_cv32e20_sb_dual_ref_c extends uvme_cv32e20_sb_c;
     function void create_sbs();
         super.create_sbs();
 
-        m_rvfi_scoreboard2 = uvmc_rvfi_scoreboard_c#(ILEN, XLEN)::type_id::create("m_rvfi_scoreboard2", this);
+        m_rvfi_scoreboard2 = uvmc_rvfi_scoreboard_c#(ILEN, uvme_cv32e20_pkg::XLEN)::type_id::create("m_rvfi_scoreboard2", this);
 
     endfunction: create_sbs
 
@@ -84,7 +84,7 @@ class uvme_cv32e20_env_dual_ref_c extends uvme_cv32e20_env_c;
         super.create_env_components();
 
         if (cfg.scoreboard_enabled) begin
-            reference_model2 = uvmc_rvfi_reference_model#(ILEN, XLEN)::type_id::create("reference_model2", this);
+            reference_model2 = uvmc_rvfi_reference_model#(ILEN, uvme_cv32e20_pkg::XLEN)::type_id::create("reference_model2", this);
         end
 
     endfunction: create_env_components
