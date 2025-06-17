@@ -21,6 +21,7 @@ allowed_toolchains = [
 
 # Argparse the input in search of the flag -gui
 parser = argparse.ArgumentParser()
+parser.add_argument("-out_dir", help="Output directory for the simulation results")
 parser.add_argument("-gui", help="Run the simulation in GUI mode", action="store_true")
 parser.add_argument(
     "-sw_only", help="Compile only the SW, not the HW", action="store_true"
@@ -71,8 +72,6 @@ if __name__ == "__main__":
     
     # Default define
     test_define = ""
-    
-    subprocess.run(["reset"])
 
     args = parser.parse_args()
 
@@ -230,11 +229,16 @@ if __name__ == "__main__":
 
     ## DRI DEFINITION
     # The output root directory for the compilation and simulation
-    out_dir = (
-        os.path.join(CORE_V_VERIF, "log")
-        if not args.skip_testcase_comp
-        else Path(args.program).parent / "log"
-    )
+    if args.out_dir:
+        out_dir = args.out_dir
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+    else:    
+        out_dir = (
+            os.path.join(CORE_V_VERIF, "log")
+            if not args.skip_testcase_comp
+            else Path(args.program).parent / "log"
+        )
 
     program_name = args.program
 
@@ -243,10 +247,11 @@ if __name__ == "__main__":
     csrc_dir         = os.path.join(vcs_out_dir, "csrc")
     test_program_dir = os.path.join(vcs_out_dir, "default", program_name, "0", "test_program")
     bsp_dir          = os.path.join(test_program_dir, "bsp")
-
+    
     # If the program is a path, extract the program name
     program_path = Path(args.program)
     if program_path.is_absolute() or program_path.parent != Path('.'):
+        print("BRANCH0")
         elf_file = Path(args.program).parent / f"{Path(args.program).name}"
         hex_file = Path(args.program).parent / f"{Path(args.program).stem}.hex"
         itb_file = Path(args.program).parent / f"{Path(args.program).stem}.itb"
