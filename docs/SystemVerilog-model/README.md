@@ -123,3 +123,8 @@ if (t_reference_model.halt || (sentinel_enable && (sentinel_value == t_reference
     sim_finished = 1;
 
 Here we can see that the bit sim_finished is setted to 1, only if the condition above is satisfied, but since noone was setting t_reference_model.halt  (spike does it, our model no), the simulation wasn't finishing and was going on a loop in the scoreboard. To get up to this problem I added a line in the wfi instruction that set the halt bit whenever detected. In this way the simulation was finishing for basic test. Concerning the added cv tests, they were still not finishing, because it's not enough writing wfi at the end of an assembly file to make the simulation stop. The correct way to write is j _test_pass, because there are more things the hardware have to do other than execute the wfi to make the simulation stop ( there are some stores and shift instructions ). I replaced the wfi with this j _test_pass, and now all tests are performed and finished as expected 
+
+
+## 17/06/2025 push
+
+Cv postinc load and store instructions have been added to the model. Implementation seems correct, but because I created the test, and I am bad at creating tests, sometimes there are mismatch in the result written in the memory. This happens because sometimes the address is too high and the memory isn't big enough to make an access to that address. Also sometimes there are probelms if there is the same register in two var fields. It happens also when they are all different but I don't get why ( maybe because the test has no sense at all, there are only load and store put randomly by chatgpt in the file ). Maybe a real test could be useful, also because the implementation after a lot of time debuggig seems correct to me

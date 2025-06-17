@@ -13,6 +13,7 @@ allowed_marches = [
     "rv32imc_zicsr_xcvsimd",
     "rv32imc_zicsr_xcvalu_xcvsimd",
     "rv32imc_zicsr_xcvalu_xcvsimd_xcvmac",
+    "rv32imc_zicsr_xcvalu_xcvsimd_xcvmac_xcvmem",
 ]
 
 allowed_toolchains = [
@@ -318,7 +319,7 @@ if __name__ == "__main__":
     ################ SELECT THE CRT0 AND LINKER #######################
     ###################################################################
     if program_name == "riscv_arithmetic_basic_test_0":
-        crt0_path = f"{CORE_V_VERIF}/tests/programs/custom/riscv_arithmetic_basic_test_0/riscv_arithmetic_basic_test_0.S"
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/riscv_arithmetic_basic_test_0/riscv_arithmetic_basic_test_0.S"
     elif program_name == "simple_cv_addsub_test":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_addsub_test/simple_cv_addsub_test.S"
     elif program_name == "simple_cv_addsubls3_test":
@@ -339,6 +340,8 @@ if __name__ == "__main__":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_mac168_test/simple_cv_mac168_test.S"
     elif program_name == "simple_cv_mul168_test":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_mul168_test/simple_cv_mul168_test.S"          
+    elif program_name == "simple_cv_postinc_load_store_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_postinc_load_store_test/simple_cv_postinc_load_store_test.S" 
     else:
         crt0_path = f"{CORE_TB_PATH}/bsp/crt0.S"
         

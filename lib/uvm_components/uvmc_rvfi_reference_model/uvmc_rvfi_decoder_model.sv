@@ -3172,6 +3172,201 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_LB_RIPI : begin
+
+                `uvm_info("CV_LB_RIPI", "Instruction CV_LB_RIPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{imm12[11]}}, imm12};
+				reg_file[rd] = {{24{mem[reg_file[rs1]][7]}}, mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += imm12_ext;
+
+            end
+
+            CV_LB_RR : begin
+
+                `uvm_info("CV_LB_RR", "Instruction CV_LB_RR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {{24{mem[reg_file[rs1] + reg_file[rs2]][7]}}, mem[reg_file[rs1] + reg_file[rs2]][7:0]};
+
+            end
+
+            CV_LB_RRPI : begin
+
+                `uvm_info("CV_LB_RRPI", "Instruction CV_LB_RRPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {{24{mem[reg_file[rs1]][7]}}, mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += reg_file[rs2];
+
+            end
+
+            CV_LBU_RIPI : begin
+
+                `uvm_info("CV_LBU_RIPI", "Instruction CV_LBU_RIPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{imm12[11]}}, imm12};
+				reg_file[rd] = {24'b0, mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += imm12_ext;
+
+            end
+
+            CV_LBU_RR : begin
+
+                `uvm_info("CV_LBU_RR", "Instruction CV_LBU_RR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {24'b0, mem[reg_file[rs1] + reg_file[rs2]][7:0]};
+
+            end
+
+            CV_LBU_RRPI : begin
+
+                `uvm_info("CV_LBU_RRPI", "Instruction CV_LBU_RRPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {24'b0, mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += reg_file[rs2];
+
+            end
+
+            CV_LH_RIPI : begin
+
+                `uvm_info("CV_LH_RIPI", "Instruction CV_LH_RIPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{imm12[11]}}, imm12};
+				reg_file[rd] = {{16{mem[reg_file[rs1] + 1][7]}}, mem[reg_file[rs1] + 1][7:0], mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += imm12_ext;
+
+            end
+
+            CV_LH_RR : begin
+
+                `uvm_info("CV_LH_RR", "Instruction CV_LH_RR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {{16{mem[reg_file[rs1] + reg_file[rs2] + 1][7]}}, mem[reg_file[rs1] + reg_file[rs2] + 1][7:0], mem[reg_file[rs1] + reg_file[rs2]][7:0]};
+
+            end
+
+            CV_LH_RRPI : begin
+
+                `uvm_info("CV_LH_RRPI", "Instruction CV_LH_RRPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {{16{mem[reg_file[rs1] + 1][7]}}, mem[reg_file[rs1] + 1][7:0], mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += reg_file[rs2];
+
+            end
+
+            CV_LHU_RIPI : begin
+
+                `uvm_info("CV_LHU_RIPI", "Instruction CV_LHU_RIPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{imm12[11]}}, imm12};
+				reg_file[rd] = {16'b0, mem[reg_file[rs1] + 1][7:0], mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += imm12_ext;
+
+            end
+
+            CV_LHU_RR : begin
+
+                `uvm_info("CV_LHU_RR", "Instruction CV_LHU_RR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {16'b0, mem[reg_file[rs1] + reg_file[rs2] + 1][7:0], mem[reg_file[rs1] + reg_file[rs2]][7:0]};
+
+            end
+
+            CV_LHU_RRPI : begin
+
+                `uvm_info("CV_LHU_RRPI", "Instruction CV_LHU_RRPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {16'b0, mem[reg_file[rs1] + 1][7:0], mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += reg_file[rs2];
+
+            end
+
+            CV_LW_RIPI : begin
+
+                `uvm_info("CV_LW_RIPI", "Instruction CV_LW_RIPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{imm12[11]}}, imm12};
+				reg_file[rd] = {mem[reg_file[rs1] + 3][7:0], mem[reg_file[rs1] + 2][7:0], mem[reg_file[rs1] + 1][7:0], mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += imm12_ext;
+
+            end
+
+            CV_LW_RR : begin
+
+                `uvm_info("CV_LW_RR", "Instruction CV_LW_RR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {mem[reg_file[rs1] + reg_file[rs2] + 3][7:0], mem[reg_file[rs1] + reg_file[rs2] + 2][7:0], mem[reg_file[rs1] + reg_file[rs2] + 1][7:0], mem[reg_file[rs1] + reg_file[rs2]][7:0]};
+
+            end
+
+            CV_LW_RRPI : begin
+
+                `uvm_info("CV_LW_RRPI", "Instruction CV_LW_RRPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				reg_file[rd] = {mem[reg_file[rs1] + 3][7:0], mem[reg_file[rs1] + 2][7:0], mem[reg_file[rs1] + 1][7:0], mem[reg_file[rs1]][7:0]};
+				reg_file[rs1] += reg_file[rs2];
+
+            end
+
             CV_MAC : begin
 
                 `uvm_info("CV_MAC", "Instruction CV_MAC detected successfully", UVM_LOW)
@@ -4131,6 +4326,48 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_SB_RIPI : begin
+
+                `uvm_info("CV_SB_RIPI", "Instruction CV_SB_RIPI detected successfully", UVM_LOW)
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                imm12hi = instr[31:25];
+                imm12lo = instr[11:7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{imm12hi[6]}}, imm12hi, imm12lo};
+				mem[reg_file[rs1]] = reg_file[rs2][7:0];
+				reg_file[rs1] += imm12_ext;
+
+            end
+
+            CV_SB_RR : begin
+
+                `uvm_info("CV_SB_RR", "Instruction CV_SB_RR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				mem[reg_file[rs1] + reg_file[rd]] = reg_file[rs2][7:0];
+				rd = 0;
+
+            end
+
+            CV_SB_RRPI : begin
+
+                `uvm_info("CV_SB_RRPI", "Instruction CV_SB_RRPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				mem[reg_file[rs1]] = reg_file[rs2][7:0];
+				reg_file[rs1] += reg_file[rd];
+				rd = 0;
+
+            end
+
             CV_SDOTSP : begin
 
                 `uvm_info("CV_SDOTSP", "Instruction CV_SDOTSP detected successfully", UVM_LOW)
@@ -4482,6 +4719,51 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 					end
 					iteration_mx = ~iteration_mx;
 				end
+
+            end
+
+            CV_SH_RIPI : begin
+
+                `uvm_info("CV_SH_RIPI", "Instruction CV_SH_RIPI detected successfully", UVM_LOW)
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                imm12hi = instr[31:25];
+                imm12lo = instr[11:7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{imm12hi[6]}}, imm12hi, imm12lo};
+				mem[reg_file[rs1]] = reg_file[rs2][7:0];
+				mem[reg_file[rs1] + 1] = reg_file[rs2][15:8];
+				reg_file[rs1] += imm12_ext;
+
+            end
+
+            CV_SH_RR : begin
+
+                `uvm_info("CV_SH_RR", "Instruction CV_SH_RR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				mem[reg_file[rs1] + reg_file[rd]] = reg_file[rs2][7:0];
+				mem[reg_file[rs1] + reg_file[rd] + 1] = reg_file[rs2][15:8];
+				rd = 0;
+
+            end
+
+            CV_SH_RRPI : begin
+
+                `uvm_info("CV_SH_RRPI", "Instruction CV_SH_RRPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				mem[reg_file[rs1]] = reg_file[rs2][7:0];
+				mem[reg_file[rs1] + 1] = reg_file[rs2][15:8];
+				reg_file[rs1] += reg_file[rd];
+				rd = 0;
 
             end
 
@@ -4898,6 +5180,57 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				end else begin
 					reg_file[rd] = ($unsigned(reg_file[rd]) - $unsigned(reg_file[rs1])) >> reg_file[rs2][4:0];
 				end
+
+            end
+
+            CV_SW_RIPI : begin
+
+                `uvm_info("CV_SW_RIPI", "Instruction CV_SW_RIPI detected successfully", UVM_LOW)
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                imm12hi = instr[31:25];
+                imm12lo = instr[11:7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{imm12hi[6]}}, imm12hi, imm12lo};
+				mem[reg_file[rs1]] = reg_file[rs2][7:0];
+				mem[reg_file[rs1] + 1] = reg_file[rs2][15:8];
+				mem[reg_file[rs1] + 2] = reg_file[rs2][23:16];
+				mem[reg_file[rs1] + 3] = reg_file[rs2][31:24];
+				reg_file[rs1] += imm12_ext;
+
+            end
+
+            CV_SW_RR : begin
+
+                `uvm_info("CV_SW_RR", "Instruction CV_SW_RR detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				mem[reg_file[rs1] + reg_file[rd]] = reg_file[rs2][7:0];
+				mem[reg_file[rs1] + reg_file[rd] + 1] = reg_file[rs2][15:8];
+				mem[reg_file[rs1] + reg_file[rd] + 2] = reg_file[rs2][23:16];
+				mem[reg_file[rs1] + reg_file[rd] + 3] = reg_file[rs2][31:24];
+				rd = 0;
+
+            end
+
+            CV_SW_RRPI : begin
+
+                `uvm_info("CV_SW_RRPI", "Instruction CV_SW_RRPI detected successfully", UVM_LOW)
+                rd = instr[11:7];
+                rs1 = instr[19:15];
+                rs2 = instr[24:20];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				mem[reg_file[rs1]] = reg_file[rs2][7:0];
+				mem[reg_file[rs1] + 1] = reg_file[rs2][15:8];
+				mem[reg_file[rs1] + 2] = reg_file[rs2][23:16];
+				mem[reg_file[rs1] + 3] = reg_file[rs2][31:24];
+				reg_file[rs1] += reg_file[rd];
+				rd = 0;
 
             end
 
@@ -5498,17 +5831,9 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
         rvfi_instr_seq_item.order     = order++;
         rvfi_instr_seq_item.insn      = instr;
         rvfi_instr_seq_item.rs1_addr  = rs1;
-        if(rs1 != rd) begin
-            rvfi_instr_seq_item.rs1_rdata = reg_file[rs1];
-        end else begin
-            rvfi_instr_seq_item.rs1_rdata = reg_rs1_prev;
-        end
+        rvfi_instr_seq_item.rs1_rdata = reg_rs1_prev;
         rvfi_instr_seq_item.rs2_addr  = rs2;
-        if(rs2 != rd) begin
-            rvfi_instr_seq_item.rs2_rdata = reg_file[rs2];
-        end else begin
-            rvfi_instr_seq_item.rs2_rdata = reg_rs2_prev;
-        end
+        rvfi_instr_seq_item.rs2_rdata = reg_rs2_prev;
         rvfi_instr_seq_item.rd1_addr  = rd;
         rvfi_instr_seq_item.rd1_wdata = reg_file[rd];
         rvfi_instr_seq_item.pc_rdata  = pc_before;
