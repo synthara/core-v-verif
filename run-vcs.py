@@ -3,12 +3,23 @@ import os
 import argparse
 import shutil
 import subprocess
+import json
 from util import fmt
 
+# Commit on branch feature/ssr
+RTL_COP_COMMIT = "d78b02907a7358889814a9fd428d38a8154b318d"
+# Commit on branch feature/rvfi_interrupts
+RTL_BASE_COMMIT = "e027937aef36f95723b05f19eecdd2f567495e57"
+
+# Commit on branch test_cv_instr
+TB_COP_COMMIT = "313a9de49b82b4375a1edeedb80bb12ee47e4993"
+# Commit on branch feature/interrupts
+TB_BASE_COMMIT = "e892f368f831b0df7d5da00a93c5ef6d5b7998cc"
+
 allowed_marches = [
+    "rv32imc_zicsr",
     "rv32imc",
     "rv32im_zicsr",
-    "rv32imc_zicsr",
     "rv32imc_zicsr_xcvalu",
     "rv32imc_zicsr_xcvsimd",
     "rv32imc_zicsr_xcvalu_xcvsimd",
@@ -71,7 +82,7 @@ parser.add_argument(
 )
 parser.add_argument("-bm", help="Enable the behavioral model", action="store_true")
 parser.add_argument("-define",  help="Pass a sim define",      default="")
-parser.add_argument("-march", help="March definition, default is {allowed_marches[0]}, allowed are {allowed_marches}", default=allowed_marches[0])
+parser.add_argument("-march", help=f"March definition, default is {allowed_marches[0]}, allowed are {allowed_marches}", default=allowed_marches[0])
 parser.add_argument("-delay", help="Fetch initial delay to give time to the TB to load data through AXI in the IMEM", default="100000")
 parser.add_argument("-core", help="Name of the core to simulate, default is cv32e20", default="cv32e20")
 
@@ -129,6 +140,9 @@ if __name__ == "__main__":
     # TODO: For the moment CORE V VERIF is aside of the RVV, should maybe become a submodule
     CORE_RTL_PATH = f"{CORE_V_VERIF}/core-v-cores/{args.core}"
     CORE_TB_PATH = f"{CORE_V_VERIF}/{args.core}"
+    VERILAB_DIR = f"{CORE_TB_PATH}/vendor_lib/verilab/svlib"
+    RISCV_OPCODES_DIR = f"{CORE_V_VERIF}/riscv-opcodes"
+    RISCV_OPCODES_CONFIG_PATH = f"{CORE_V_VERIF}/util/config.json"
 
     os.environ["CORE_V_VERIF"] = CORE_V_VERIF
     os.environ["CORE_RTL_PATH"] = CORE_RTL_PATH
@@ -239,6 +253,12 @@ if __name__ == "__main__":
         os.environ["DSL_PATH"] = f"{CV_CORE_PKG}/../coproc_xcs/src/dsl"
 
         additional_filelist += f"-f {CORE_V_VERIF}/core-v-cores/coproc_xcs/coproc.fl "
+        
+        rtl_commit = RTL_COP_COMMIT
+        tb_commit = TB_COP_COMMIT
+    else:
+        rtl_commit = RTL_BASE_COMMIT
+        tb_commit = TB_BASE_COMMIT
 
     if args.dmv:
         os.environ["DSL_PATH"] = f"{CV_CORE_PKG}/../coproc_xcs/src/dsl"
@@ -417,6 +437,12 @@ if __name__ == "__main__":
     # if uvm_test_name == "rec_tb_cor_axi_test_drive_both_computeram_no_fw_preload":
     #     linker_script = f"{CORE_V_VERIF}/design/top/rec/scripts/c/dram_system/link.ld"
 
+    with open(RISCV_OPCODES_CONFIG_PATH, "r") as f:
+        riscv_opcodes_config = json.load(f)
+    
+    ext_supported = ""
+    for el in riscv_opcodes_config["ext_supported"]:
+        ext_supported += f"{el} "
 
     ###################################################################
     ################ FORMAT COMMANDS TEMPLATE   #######################
@@ -428,6 +454,7 @@ if __name__ == "__main__":
         "CORE_V_VERIF": CORE_V_VERIF,
         "CORE_V_VERIF": CORE_V_VERIF,
         "VCS_HOME": VCS_HOME,
+        "RISCV_OPCODES_DIR": RISCV_OPCODES_DIR,
         "cv_core": cv_core,
         "CORE_RTL_PATH": CORE_RTL_PATH,
         "CORE_TB_PATH": CORE_TB_PATH,
@@ -459,7 +486,10 @@ if __name__ == "__main__":
         "elf_file": elf_file,
         "hex_file": hex_file,
         "itb_file": itb_file,
-        "additional_filelist": additional_filelist
+        "additional_filelist": additional_filelist,
+        "rtl_commit": rtl_commit,
+        "tb_commit": tb_commit,
+        "ext_supported": ext_supported
     }
 
     google_compile_cmd = fmt.google_compile_cmd.format(**fmt_dict)
@@ -475,8 +505,21 @@ if __name__ == "__main__":
     sv_compile_cmd = fmt.sv_compile_cmd.format(**fmt_dict)
 
     sv_sim_cmd = fmt.sv_sim_cmd.format(**fmt_dict)
+    
+    build_folder_cmd = fmt.build_folder_cmd.format(**fmt_dict)
+    
+    rtl_git_cmd = fmt.rtl_git_cmd.format(**fmt_dict)
+    
+    tb_git_cmd = fmt.tb_git_cmd.format(**fmt_dict)
+    
+    parse_cmd = fmt.parse_cmd.format(**fmt_dict)
 
-    sw_cmd_dict = {"bsp_compile_cmd": bsp_compile_cmd}
+    sw_cmd_dict = {
+        "rtl_git_cmd": rtl_git_cmd,
+        "tb_git_cmd": tb_git_cmd,
+        "bsp_compile_cmd": bsp_compile_cmd,
+        "parse_cmd": parse_cmd
+    }
 
     ###################################################################
     ################ CREATE THE COMMAND DICT    #######################
@@ -495,6 +538,11 @@ if __name__ == "__main__":
             "test_program_compile_cmd": test_program_compile_cmd,
             "hex_compile_cmd": hex_compile_cmd,
         }
+        
+    # If the folder has not been built, this command is added at the beginning of the sw_cmd_dict
+    # in order to build the folder before compiling the SW. The verilab folder will be filled with Spike files
+    if not os.path.exists(VERILAB_DIR):
+        sw_cmd_dict = {"build_folder_cmd": build_folder_cmd, **sw_cmd_dict}
 
     hw_cmd_dict = {"sv_compile_cmd": sv_compile_cmd, "sv_sim_cmd": sv_sim_cmd}
 
