@@ -1,9 +1,6 @@
 [submodule "core-v-cores/cv32e20"]
 	path = core-v-cores/cv32e20
 	url = git@github.com:synthara/rv2.git
-[submodule "core-v-cores/coproc_XCS"]
-	path = core-v-cores/coproc_XCS
-	url = git@github.com:synthara/D-RVV-XCS_eXtension_Interface_Coprocessor_SIMD_ext.git
 [submodule "cv32e20"]
 	path = cv32e20
 	url = git@github.com:synthara/cv32e20-dv.git
@@ -11,3 +8,6 @@
 [submodule "core-v-cores/smartLSU"]
 	path = core-v-cores/smartLSU
 	url = git@github.com:synthara/D-SLS-SmartLSU.git
+[submodule "core-v-cores/coproc_XCS"]
+	path = core-v-cores/coproc_XCS
+	url = git@github.com:synthara/D-RVV-XCS_eXtension_Interface_Coprocessor_SIMD_ext.git
