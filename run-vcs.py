@@ -37,6 +37,7 @@ allowed_toolchains = [
 
 # Argparse the input in search of the flag -gui
 parser = argparse.ArgumentParser()
+parser.add_argument("-asf", help="ASF flag (accepts a string)", default="", type=str)
 parser.add_argument("-out_dir", help="Output directory for the simulation results")
 parser.add_argument("-gui", help="Run the simulation in GUI mode", action="store_true")
 parser.add_argument("-cop", help="Compile the coprocessor as well", action="store_true")
@@ -489,7 +490,8 @@ if __name__ == "__main__":
         "additional_filelist": additional_filelist,
         "rtl_commit": rtl_commit,
         "tb_commit": tb_commit,
-        "ext_supported": ext_supported
+        "ext_supported": ext_supported,
+        "additional_string_sim": args.asf
     }
 
     google_compile_cmd = fmt.google_compile_cmd.format(**fmt_dict)
@@ -560,7 +562,7 @@ if __name__ == "__main__":
 
     if args.sw_only:
         exit()
-
+        
     for cmd_idx, (key, cmd) in enumerate(hw_cmd_dict.items()):
         print("\n**********************************************************")
         print(f"{key}:\n{cmd}")

@@ -61,11 +61,10 @@ def compare_cpu_times(tests, programs, base_dir):
 # Example usage:
 if __name__ == "__main__":
     tests = ["uvmt_cv32e20_firmware_test_c", "uvmt_cv32e20_model_test_c"]
-    programs = ["hello-world", "fibonacci", "riscv_arithmetic_basic_test_0", "riscv_arithmetic_basic_test_1"]
-    base_dir = "/scratch/vcl/riscv/20250619_230044"
+    programs = ["hello-world", "fibonacci", "riscv_arithmetic_basic_test_0"]
 
     parser = argparse.ArgumentParser(description="Compare CPU times from log files.")
-    parser.add_argument("--dir", type=str, default=base_dir, help="Base directory containing log files")
+    parser.add_argument("--dir", type=str, required=True, help="Base directory containing log files")
     args = parser.parse_args()
     base_dir = args.dir
 

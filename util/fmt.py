@@ -171,7 +171,7 @@ cd {vcs_out_dir}/default/{program_name}/0 && \
 -sv_lib {CORE_V_VERIF}/tools/spike/lib/libfesvr \
 -sv_lib {CORE_V_VERIF}/vendor_lib/imperas/imperas_DV_COREV/bin/Linux64/imperas_CV32.dpi \
 -sv_lib {CORE_TB_PATH}/vendor_lib/verilab/svlib_dpi +scoreboard_enable={scoreboard_enable} \
--assert nopostproc \
+-assert nopostproc {additional_string_sim} \
 +ntb_random_seed=1 \
 +USE_ISS \
 {gui} \

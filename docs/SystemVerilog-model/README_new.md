@@ -23,10 +23,13 @@ The script `automate.sh` is used in order to run regressions and compare the res
 VCS simulation time was different between Spike and UVM model. This made impossible to compare the actual simulation times.
 To solve the following changes took place
 
-1. In `lib/uvm_agents/uvma_obi_memory/src/comps/uvma_obi_memory_drv.sv`
-- line 449 `repeat (0) begin`
-- line 473 `repeat (0) begin`
-- line 303 `int unsigned effective_latency = 0;`
-2. In `cv32e20/env/uvme/uvme_cv32e20_cfg.sv`
-- line 170 `obi_memory_data_cfg.drv_slv_gnt_mode    == UVMA_OBI_MEMORY_DRV_SLV_GNT_MODE_CONSTANT;`
-- line 174 `obi_memory_data_cfg.drv_slv_rvalid_mode == UVMA_OBI_MEMORY_DRV_SLV_RVALID_MODE_CONSTANT;`
+~~1. In `lib/uvm_agents/uvma_obi_memory/src/comps/uvma_obi_memory_drv.sv`~~
+~~- line 449 `repeat (0) begin`~~
+~~- line 473 `repeat (0) begin`~~
+~~- line 303 `int unsigned effective_latency = 0;`~~
+~~2. In `cv32e20/env/uvme/uvme_cv32e20_cfg.sv`~~
+~~- line 170 `obi_memory_data_cfg.drv_slv_gnt_mode    == UVMA_OBI_MEMORY_DRV_SLV_GNT_MODE_CONSTANT;`~~
+~~- line 174 `obi_memory_data_cfg.drv_slv_rvalid_mode == UVMA_OBI_MEMORY_DRV_SLV_RVALID_MODE_CONSTANT;`~~
+
+1. In file `cv32e20/env/uvme/uvme_cv32e20_cfg.sv` comment from line 290 to 294.
+2. To the command `run-vcs` pass `+rand_stall_obi_disable` after the flag `-asf` (additional sim flags) 
