@@ -33,3 +33,17 @@ To solve the following changes took place
 
 1. In file `cv32e20/env/uvme/uvme_cv32e20_cfg.sv` comment from line 290 to 294.
 2. To the command `run-vcs` pass `+rand_stall_obi_disable` after the flag `-asf` (additional sim flags) 
+
+## COREMARK
+
+To check the commands on OpenHW env
+
+1. Go to `mk/Common.mk` line 316 and write `CFLAGS ?= -Os -g -static -mabi=ilp32 -march=$(RISCV_MARCH) -Wall -pedantic $(RISCV_CFLAGS) -DITERATIONS=1 -DVALIDATION_RUN=1 -DFLAGS_STR="\"-Os -g -static -mabi=ilp32 -Wall -pedantic\""`
+2. In file `lib/uvm_components/uvmc_rvfi_reference_model/uvmc_rvfi_reference_model_pkg.sv` comment line 36
+
+go to cv32e20/sim/uvmt and run 
+`reset;make test TEST=coremark CV_SIMULATOR=vcs USE_ISS=YES WAVES=1`
+
+It would fail if you run it without ISS
+
+Everything must be then merged with Python script
