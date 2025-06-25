@@ -7,12 +7,20 @@ import json
 from util import fmt
 
 # Commit on branch feature/ssr
-RTL_COP_COMMIT = "d78b02907a7358889814a9fd428d38a8154b318d"
-# Commit on branch feature/rvfi_interrupts
+#RTL_COP_COMMIT = "d78b02907a7358889814a9fd428d38a8154b318d"
+# Commit on new branch fdm_dev_tristan
+RTL_COP_COMMIT = "0fc7d2da87ad5f60a6104463497a44f0f777d6f7"
+
+# Commit on branch feature/rvfi_improvements
 RTL_BASE_COMMIT = "e027937aef36f95723b05f19eecdd2f567495e57"
 
+
+
 # Commit on branch test_cv_instr
-TB_COP_COMMIT = "313a9de49b82b4375a1edeedb80bb12ee47e4993"
+#TB_COP_COMMIT = "313a9de49b82b4375a1edeedb80bb12ee47e4993"
+# Commit on new branch fdm_dev_tristan
+TB_COP_COMMIT = "1191c426b1e17c4a685eaf860ef66944e3163b06"
+
 # Commit on branch feature/interrupts
 TB_BASE_COMMIT = "e892f368f831b0df7d5da00a93c5ef6d5b7998cc"
 
@@ -346,6 +354,18 @@ if __name__ == "__main__":
     ###################################################################
     if program_name == "riscv_arithmetic_basic_test_0":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/riscv_arithmetic_basic_test_0/riscv_arithmetic_basic_test_0.S"
+    elif program_name == "riscv_arithmetic_basic_test_1":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/riscv_arithmetic_basic_test_1/riscv_arithmetic_basic_test_1.S"
+    elif program_name == "csr_instr_asm":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/csr_instr_asm/csr_instr_asm.S"
+    elif program_name == "generic_exception_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/generic_exception_test/generic_exception_test.S"
+    elif program_name == "illegal_instr_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/illegal_instr_test/illegal_instr_test.S"
+    elif program_name == "isa_fcov_holes":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/isa_fcov_holes/isa_fcov_holes.S"
+    elif program_name == "load_store_rs1_zero":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/load_store_rs1_zero/load_store_rs1_zero.S"
     elif program_name == "simple_cv_addsub_test":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_addsub_test/simple_cv_addsub_test.S"
     elif program_name == "simple_cv_addsubls3_test":
@@ -384,7 +404,7 @@ if __name__ == "__main__":
     # if uvm_test_name == "rec_tb_cor_axi_test_drive_both_computeram_no_fw_preload":
     #     crt0_path = f"{CORE_V_VERIF}/design/top/rec/scripts/c/dram_system/crt0.S"
 
-    if program_name in ["hello-world", "fibonacci", "csr_instructions", "branch_zero"]:
+    if program_name in ["hello-world", "fibonacci", "dhrystone", "csr_instructions", "branch_zero", "all_csr_por", "debug_test", "debug_test_reset", "hpmcounter_basic_test", "hpmcounter_hazard_test", "illegal", "interrupt_bootstrap", "interrupt_test", "misalign", "perf_counters_instructions", "riscv_csr"]:
         c_files = f"{CORE_TB_PATH}/tests/programs/custom/{program_name}/{program_name}.c"
     elif program_name == "coremark":
         c_files = f"-DITERATIONS=1 \
