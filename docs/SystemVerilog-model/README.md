@@ -128,3 +128,8 @@ Here we can see that the bit sim_finished is setted to 1, only if the condition 
 ## 17/06/2025 push
 
 Cv postinc load and store instructions have been added to the model. Implementation seems correct, but because I created the test, and I am bad at creating tests, sometimes there are mismatch in the result written in the memory. This happens because sometimes the address is too high and the memory isn't big enough to make an access to that address. Also sometimes there are probelms if there is the same register in two var fields. It happens also when they are all different but I don't get why ( maybe because the test has no sense at all, there are only load and store put randomly by chatgpt in the file ). Maybe a real test could be useful, also because the implementation after a lot of time debuggig seems correct to me
+
+
+## 02/07/2025 push
+
+Modified the way the parser is parsing the instructions ( no more from terminal ), hwloop instructions added to the model but no test has been performed yet to verify the correctness of these instruction set. In fmt.py in the util folder, the compiler has been changed from GXX to GCC, because some tests were giving build error for this reason. Config.json and run_vcs have been updated

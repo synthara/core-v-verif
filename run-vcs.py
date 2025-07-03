@@ -337,13 +337,13 @@ if __name__ == "__main__":
     args_define = f"+define+{args.define}"
     vcs_compile_flags = "+define++define+CV32E20_RVFI+RVFI +define+CV32E20_TRACE_EXECUTION +USE_ISS -lca -sverilog +define+CV32E20_ASSERT_ON -ntb_opts uvm-1.2 -timescale=1ns/1ps -assert svaext -race=all -ignore unique_checks -full64 -reportstats -notice -line -fgp=multisocket +define+UVM"
 
-            # Trova il percorso assoluto del file inst.sverilog
+    # Find absolute path of file inst.sverilog
     inst_file_path = os.path.abspath(os.path.join(CORE_V_VERIF,"riscv-opcodes", "inst.sverilog"))
 
-    # Aggiungi il path della directory di inst.sverilog al +incdir
+    # Add the path of inst.sverilog directory to +incdir
     vcs_compile_flags += f" +incdir+{os.path.dirname(inst_file_path)} "
 
-    # Includi direttamente il file inst.sverilog nella compilazione
+    # Include inst.sverilog in the build
     vcs_compile_flags += f" {inst_file_path} "
     
 
@@ -366,6 +366,22 @@ if __name__ == "__main__":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/isa_fcov_holes/isa_fcov_holes.S"
     elif program_name == "load_store_rs1_zero":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/load_store_rs1_zero/load_store_rs1_zero.S"
+    elif program_name == "hwlp_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/hwlp_test/hwlp_test.S"
+    elif program_name == "1D_conv":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/1D_conv/1D_conv.S"
+    elif program_name == "average_pooling":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/average_pooling/average_pooling.S"
+    elif program_name == "matrix_vector_mul":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/matrix_vector_mul/matrix_vector_mul.S"
+    elif program_name == "max_pooling":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/max_pooling/max_pooling.S"
+    elif program_name == "ssr_test":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/ssr_test/ssr_test.S"
+    elif program_name == "vec_sum":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/vec_sum/vec_sum.S"
+    elif program_name == "1D_conv_XCS":
+        crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/1D_conv_XCS/1D_conv_XCS.S"
     elif program_name == "simple_cv_addsub_test":
         crt0_path = f"{CORE_V_VERIF}/cv32e20/tests/programs/custom/simple_cv_addsub_test/simple_cv_addsub_test.S"
     elif program_name == "simple_cv_addsubls3_test":

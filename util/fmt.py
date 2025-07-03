@@ -110,7 +110,7 @@ cd {bsp_dir} && \
 # * Compiling test-program {test_program_dir}/{program_name}.elf
 # *******************************************************************************************
 test_program_compile_cmd = """
-{RISCV_EXE_PREFIX}{GXX} \
+{RISCV_EXE_PREFIX}{GCC} \
 -Os \
 -g \
 -static \

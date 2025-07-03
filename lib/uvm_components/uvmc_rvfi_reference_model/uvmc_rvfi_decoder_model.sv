@@ -116,6 +116,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
     bit [2:0] c_sreg2;
     bit [4:0] ls3;
     bit [4:0] ls2;
+    bit L;
     
     //Added by hand (not present in arg_lut.csv)
     bit [31:0] instruction;
@@ -139,6 +140,9 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
     bit [31:0] reg_result;
     bit iteration_mx = 0;
     bit [15:0] reg_mac_mul_prov;
+    bit [31:0] lpstart[1:0];
+    bit [31:0] lpend[1:0];
+    bit [31:0] lpcount[1:0];
 
 
     uvma_rvfi_instr_seq_item_c#(32, 32) rvfi_instr_seq_item;
@@ -176,9 +180,9 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
         if (st.boot_addr_valid) begin
             pc = st.boot_addr;
-            `uvm_info("Boot_addr: %h", st.boot_addr, UVM_LOW)
+            `uvm_info("Boot_addr: %h", st.boot_addr, UVM_MEDIUM)
         end else begin
-            `uvm_fatal("Boot_addr not valid, using default value", UVM_LOW)
+            `uvm_fatal("Boot_addr not valid, using default value", UVM_MEDIUM)
         end
         
     endfunction : build_phase
@@ -188,19 +192,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
         uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t_reference_model_prov;
         instruction = {mem[pc+3][7:0], mem[pc+2][7:0], mem[pc+1][7:0], mem[pc][7:0]};
         t_reference_model_prov = decode_opcode(instruction);
-        `uvm_info(get_type_name(), "Dummy step function called", UVM_DEBUG)
+        `uvm_info(get_type_name(), "Dummy step function called", UVM_MEDIUM)
         return t_reference_model_prov;
     endfunction 
 
     function void write_rvfi_instr(uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t);
         uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) t_reference_model = step(1, t);
         m_analysis_port.write(t_reference_model);
-        `uvm_info(get_type_name(), "Dummy write_rvfi_instr function called", UVM_DEBUG)
+        `uvm_info(get_type_name(), "Dummy write_rvfi_instr function called", UVM_MEDIUM)
     endfunction : write_rvfi_instr
 
     
 
-    function uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) decode_opcode(bit[31:0] instr);
+    function uvma_rvfi_instr_seq_item_c#(ILEN,XLEN) decode_opcode(bit[32-1:0] instr);
 
         rvfi_instr_seq_item = uvma_rvfi_instr_seq_item_c#(32,32)::type_id::create("rvfi_instr_seq_item", this);
 
@@ -219,7 +223,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_JALR : begin
 
-                `uvm_info("C_JALR", "Instruction C_JALR detected successfully", UVM_LOW)
+                `uvm_info("C_JALR", "Instruction C_JALR detected successfully", UVM_MEDIUM)
                 c_rs1_n0 = instr[11:7];
                 reg_rs1_prev = reg_file[c_rs1_n0];
 				reg_rs2_prev = reg_file[rs2];
@@ -234,7 +238,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_ADD : begin
 
-                `uvm_info("C_ADD", "Instruction C_ADD detected successfully", UVM_LOW)
+                `uvm_info("C_ADD", "Instruction C_ADD detected successfully", UVM_MEDIUM)
                 rd_rs1_n0 = instr[11:7];
                 c_rs2_n0 = instr[6:2];
                 reg_rs1_prev = reg_file[rd_rs1_n0];
@@ -250,7 +254,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             ADD : begin
 
-                `uvm_info("ADD", "Instruction ADD detected successfully", UVM_LOW)
+                `uvm_info("ADD", "Instruction ADD detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -262,7 +266,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             ADDI : begin
 
-                `uvm_info("ADDI", "Instruction ADDI detected successfully", UVM_LOW)
+                `uvm_info("ADDI", "Instruction ADDI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -275,7 +279,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             AND : begin
 
-                `uvm_info("AND", "Instruction AND detected successfully", UVM_LOW)
+                `uvm_info("AND", "Instruction AND detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -287,7 +291,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             ANDI : begin
 
-                `uvm_info("ANDI", "Instruction ANDI detected successfully", UVM_LOW)
+                `uvm_info("ANDI", "Instruction ANDI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -300,7 +304,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             AUIPC : begin
 
-                `uvm_info("AUIPC", "Instruction AUIPC detected successfully", UVM_LOW)
+                `uvm_info("AUIPC", "Instruction AUIPC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 imm20 = instr[31:12];
                 reg_rs1_prev = reg_file[rs1];
@@ -311,7 +315,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             BEQ : begin
 
-                `uvm_info("BEQ", "Instruction BEQ detected successfully", UVM_LOW)
+                `uvm_info("BEQ", "Instruction BEQ detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
@@ -329,7 +333,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             BGE : begin
 
-                `uvm_info("BGE", "Instruction BGE detected successfully", UVM_LOW)
+                `uvm_info("BGE", "Instruction BGE detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
@@ -347,7 +351,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             BGEU : begin
 
-                `uvm_info("BGEU", "Instruction BGEU detected successfully", UVM_LOW)
+                `uvm_info("BGEU", "Instruction BGEU detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
@@ -365,7 +369,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             BLT : begin
 
-                `uvm_info("BLT", "Instruction BLT detected successfully", UVM_LOW)
+                `uvm_info("BLT", "Instruction BLT detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
@@ -383,7 +387,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             BLTU : begin
 
-                `uvm_info("BLTU", "Instruction BLTU detected successfully", UVM_LOW)
+                `uvm_info("BLTU", "Instruction BLTU detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
@@ -401,7 +405,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             BNE : begin
 
-                `uvm_info("BNE", "Instruction BNE detected successfully", UVM_LOW)
+                `uvm_info("BNE", "Instruction BNE detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 bimm12hi = instr[31:25];
@@ -419,7 +423,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_ADDI : begin
 
-                `uvm_info("C_ADDI", "Instruction C_ADDI detected successfully", UVM_LOW)
+                `uvm_info("C_ADDI", "Instruction C_ADDI detected successfully", UVM_MEDIUM)
                 c_nzimm6lo = instr[6:2];
                 c_nzimm6hi = instr[12];
                 rd_rs1_n0 = instr[11:7];
@@ -436,7 +440,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_ADDI16SP : begin
 
-                `uvm_info("C_ADDI16SP", "Instruction C_ADDI16SP detected successfully", UVM_LOW)
+                `uvm_info("C_ADDI16SP", "Instruction C_ADDI16SP detected successfully", UVM_MEDIUM)
                 c_nzimm10hi = instr[12];
                 c_nzimm10lo = instr[6:2];
                 rs1 = 2;
@@ -452,7 +456,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_ADDI4SPN : begin
 
-                `uvm_info("C_ADDI4SPN", "Instruction C_ADDI4SPN detected successfully", UVM_LOW)
+                `uvm_info("C_ADDI4SPN", "Instruction C_ADDI4SPN detected successfully", UVM_MEDIUM)
                 c_nzuimm10 = instr[12:5];
                 rd_p = instr[4:2];
                 reg_rs1_prev = reg_file[rs1];
@@ -468,7 +472,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_AND : begin
 
-                `uvm_info("C_AND", "Instruction C_AND detected successfully", UVM_LOW)
+                `uvm_info("C_AND", "Instruction C_AND detected successfully", UVM_MEDIUM)
                 rs2_p = instr[4:2];
                 rd_rs1_p = instr[9:7];
                 reg_rs1_prev = reg_file[rd_rs1_p+8];
@@ -484,7 +488,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_ANDI : begin
 
-                `uvm_info("C_ANDI", "Instruction C_ANDI detected successfully", UVM_LOW)
+                `uvm_info("C_ANDI", "Instruction C_ANDI detected successfully", UVM_MEDIUM)
                 c_imm6lo = instr[6:2];
                 c_imm6hi = instr[12];
                 rd_rs1_p = instr[9:7];
@@ -501,7 +505,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_BEQZ : begin
 
-                `uvm_info("C_BEQZ", "Instruction C_BEQZ detected successfully", UVM_LOW)
+                `uvm_info("C_BEQZ", "Instruction C_BEQZ detected successfully", UVM_MEDIUM)
                 c_bimm9lo = instr[6:2];
                 c_bimm9hi = instr[12:10];
                 rs1_p = instr[9:7];
@@ -521,7 +525,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_BNEZ : begin
 
-                `uvm_info("C_BNEZ", "Instruction C_BNEZ detected successfully", UVM_LOW)
+                `uvm_info("C_BNEZ", "Instruction C_BNEZ detected successfully", UVM_MEDIUM)
                 c_bimm9lo = instr[6:2];
                 c_bimm9hi = instr[12:10];
                 rs1_p = instr[9:7];
@@ -541,7 +545,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_EBREAK : begin
 
-                `uvm_info("C_EBREAK", "Instruction C_EBREAK detected successfully", UVM_LOW)
+                `uvm_info("C_EBREAK", "Instruction C_EBREAK detected successfully", UVM_MEDIUM)
                 // c_ebreak
 				instr = instr & 32'h0000FFFF;
 				incr = 2;
@@ -550,7 +554,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_J : begin
 
-                `uvm_info("C_J", "Instruction C_J detected successfully", UVM_LOW)
+                `uvm_info("C_J", "Instruction C_J detected successfully", UVM_MEDIUM)
                 c_imm12 = instr[12:2];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
@@ -563,7 +567,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_JAL : begin
 
-                `uvm_info("C_JAL", "Instruction C_JAL detected successfully", UVM_LOW)
+                `uvm_info("C_JAL", "Instruction C_JAL detected successfully", UVM_MEDIUM)
                 c_imm12 = instr[12:2];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
@@ -578,7 +582,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_JR : begin
 
-                `uvm_info("C_JR", "Instruction C_JR detected successfully", UVM_LOW)
+                `uvm_info("C_JR", "Instruction C_JR detected successfully", UVM_MEDIUM)
                 rs1_n0 = instr[11:7];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
@@ -591,7 +595,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_LI : begin
 
-                `uvm_info("C_LI", "Instruction C_LI detected successfully", UVM_LOW)
+                `uvm_info("C_LI", "Instruction C_LI detected successfully", UVM_MEDIUM)
                 c_imm6lo = instr[6:2];
                 c_imm6hi = instr[12];
                 rd_n0 = instr[11:7];
@@ -607,7 +611,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_LUI : begin
 
-                `uvm_info("C_LUI", "Instruction C_LUI detected successfully", UVM_LOW)
+                `uvm_info("C_LUI", "Instruction C_LUI detected successfully", UVM_MEDIUM)
                 c_nzimm18hi = instr[12];
                 c_nzimm18lo = instr[6:2];
                 rd_n2 = instr[11:7];
@@ -623,7 +627,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_LW : begin
 
-                `uvm_info("C_LW", "Instruction C_LW detected successfully", UVM_LOW)
+                `uvm_info("C_LW", "Instruction C_LW detected successfully", UVM_MEDIUM)
                 c_uimm7lo = instr[6:5];
                 c_uimm7hi = instr[12:10];
                 rs1_p = instr[9:7];
@@ -641,7 +645,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_LWSP : begin
 
-                `uvm_info("C_LWSP", "Instruction C_LWSP detected successfully", UVM_LOW)
+                `uvm_info("C_LWSP", "Instruction C_LWSP detected successfully", UVM_MEDIUM)
                 c_uimm8splo = instr[6:2];
                 c_uimm8sphi = instr[12];
                 rd_n0 = instr[11:7];
@@ -658,7 +662,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_MV : begin
 
-                `uvm_info("C_MV", "Instruction C_MV detected successfully", UVM_LOW)
+                `uvm_info("C_MV", "Instruction C_MV detected successfully", UVM_MEDIUM)
                 rd_n0 = instr[11:7];
                 c_rs2_n0 = instr[6:2];
                 reg_rs1_prev = reg_file[rs1];
@@ -673,7 +677,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_NOP : begin
 
-                `uvm_info("C_NOP", "Instruction C_NOP detected successfully", UVM_LOW)
+                `uvm_info("C_NOP", "Instruction C_NOP detected successfully", UVM_MEDIUM)
                 c_nzimm6lo = instr[6:2];
                 c_nzimm6hi = instr[12];
                 // c_nop
@@ -684,7 +688,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_OR : begin
 
-                `uvm_info("C_OR", "Instruction C_OR detected successfully", UVM_LOW)
+                `uvm_info("C_OR", "Instruction C_OR detected successfully", UVM_MEDIUM)
                 rs2_p = instr[4:2];
                 rd_rs1_p = instr[9:7];
                 reg_rs1_prev = reg_file[rd_rs1_p+8];
@@ -700,7 +704,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_SLLI : begin
 
-                `uvm_info("C_SLLI", "Instruction C_SLLI detected successfully", UVM_LOW)
+                `uvm_info("C_SLLI", "Instruction C_SLLI detected successfully", UVM_MEDIUM)
                 c_nzuimm6lo = instr[6:2];
                 rd_rs1_n0 = instr[11:7];
                 reg_rs1_prev = reg_file[rd_rs1_n0];
@@ -715,7 +719,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_SRAI : begin
 
-                `uvm_info("C_SRAI", "Instruction C_SRAI detected successfully", UVM_LOW)
+                `uvm_info("C_SRAI", "Instruction C_SRAI detected successfully", UVM_MEDIUM)
                 c_nzuimm5 = instr[6:2];
                 rd_rs1_p = instr[9:7];
                 reg_rs1_prev = reg_file[rd_rs1_p+8];
@@ -730,7 +734,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_SRLI : begin
 
-                `uvm_info("C_SRLI", "Instruction C_SRLI detected successfully", UVM_LOW)
+                `uvm_info("C_SRLI", "Instruction C_SRLI detected successfully", UVM_MEDIUM)
                 c_nzuimm5 = instr[6:2];
                 rd_rs1_p = instr[9:7];
                 reg_rs1_prev = reg_file[rd_rs1_p+8];
@@ -745,7 +749,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_SUB : begin
 
-                `uvm_info("C_SUB", "Instruction C_SUB detected successfully", UVM_LOW)
+                `uvm_info("C_SUB", "Instruction C_SUB detected successfully", UVM_MEDIUM)
                 rs2_p = instr[4:2];
                 rd_rs1_p = instr[9:7];
                 reg_rs1_prev = reg_file[rd_rs1+8];
@@ -761,7 +765,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_SW : begin
 
-                `uvm_info("C_SW", "Instruction C_SW detected successfully", UVM_LOW)
+                `uvm_info("C_SW", "Instruction C_SW detected successfully", UVM_MEDIUM)
                 c_uimm7lo = instr[6:5];
                 c_uimm7hi = instr[12:10];
                 rs1_p = instr[9:7];
@@ -780,7 +784,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_SWSP : begin
 
-                `uvm_info("C_SWSP", "Instruction C_SWSP detected successfully", UVM_LOW)
+                `uvm_info("C_SWSP", "Instruction C_SWSP detected successfully", UVM_MEDIUM)
                 c_uimm8sp_s = instr[12:7];
                 c_rs2 = instr[6:2];
                 reg_rs1_prev = reg_file[rs1];
@@ -799,7 +803,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             C_XOR : begin
 
-                `uvm_info("C_XOR", "Instruction C_XOR detected successfully", UVM_LOW)
+                `uvm_info("C_XOR", "Instruction C_XOR detected successfully", UVM_MEDIUM)
                 rs2_p = instr[4:2];
                 rd_rs1_p = instr[9:7];
                 reg_rs1_prev = reg_file[rd_rs1_p+8];
@@ -815,7 +819,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CSRRC : begin
 
-                `uvm_info("CSRRC", "Instruction CSRRC detected successfully", UVM_LOW)
+                `uvm_info("CSRRC", "Instruction CSRRC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 csr = instr[31:20];
@@ -830,7 +834,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CSRRCI : begin
 
-                `uvm_info("CSRRCI", "Instruction CSRRCI detected successfully", UVM_LOW)
+                `uvm_info("CSRRCI", "Instruction CSRRCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 csr = instr[31:20];
                 zimm5 = instr[19:15];
@@ -845,7 +849,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CSRRS : begin
 
-                `uvm_info("CSRRS", "Instruction CSRRS detected successfully", UVM_LOW)
+                `uvm_info("CSRRS", "Instruction CSRRS detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 csr = instr[31:20];
@@ -860,7 +864,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CSRRSI : begin
 
-                `uvm_info("CSRRSI", "Instruction CSRRSI detected successfully", UVM_LOW)
+                `uvm_info("CSRRSI", "Instruction CSRRSI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 csr = instr[31:20];
                 zimm5 = instr[19:15];
@@ -875,7 +879,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CSRRW : begin
 
-                `uvm_info("CSRRW", "Instruction CSRRW detected successfully", UVM_LOW)
+                `uvm_info("CSRRW", "Instruction CSRRW detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 csr = instr[31:20];
@@ -890,7 +894,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CSRRWI : begin
 
-                `uvm_info("CSRRWI", "Instruction CSRRWI detected successfully", UVM_LOW)
+                `uvm_info("CSRRWI", "Instruction CSRRWI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 csr = instr[31:20];
                 zimm5 = instr[19:15];
@@ -905,14 +909,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ABS : begin
 
-                `uvm_info("CV_ABS", "Instruction CV_ABS detected successfully", UVM_LOW)
+                `uvm_info("CV_ABS", "Instruction CV_ABS detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_ABS_H", "Instruction CV_ABS_H detected successfully", UVM_LOW);
+					`uvm_info("CV_ABS_H", "Instruction CV_ABS_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if ($signed(reg_file[rs1][(i*16)+:16]) < 0) begin
 							reg_file[rd][(i*16)+:16] = -reg_file[rs1][(i*16)+:16];
@@ -921,7 +925,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_ABS_B", "Instruction CV_ABS_B detected successfully", UVM_LOW);
+					`uvm_info("CV_ABS_B", "Instruction CV_ABS_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if ($signed(reg_file[rs1][(i*8)+:8]) < 0) begin
 							reg_file[rd][(i*8)+:8] = -reg_file[rs1][(i*8)+:8];
@@ -935,7 +939,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ABS_W : begin
 
-                `uvm_info("CV_ABS_W", "Instruction CV_ABS_W detected successfully", UVM_LOW)
+                `uvm_info("CV_ABS_W", "Instruction CV_ABS_W detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 reg_rs1_prev = reg_file[rs1];
@@ -950,19 +954,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADD : begin
 
-                `uvm_info("CV_ADD", "Instruction CV_ADD detected successfully", UVM_LOW)
+                `uvm_info("CV_ADD", "Instruction CV_ADD detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_ADD_H", "Instruction CV_ADD_H detected successfully", UVM_LOW);
+					`uvm_info("CV_ADD_H", "Instruction CV_ADD_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] + reg_file[rs2][(i*16)+:16]) & 16'hFFFF;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_ADD_B", "Instruction CV_ADD_B detected successfully", UVM_LOW);
+					`uvm_info("CV_ADD_B", "Instruction CV_ADD_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] + reg_file[rs2][(i*8)+:8]) & 8'hFF;
 					end
@@ -972,7 +976,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADDN : begin
 
-                `uvm_info("CV_ADDN", "Instruction CV_ADDN detected successfully", UVM_LOW)
+                `uvm_info("CV_ADDN", "Instruction CV_ADDN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -985,7 +989,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADDNR : begin
 
-                `uvm_info("CV_ADDNR", "Instruction CV_ADDNR detected successfully", UVM_LOW)
+                `uvm_info("CV_ADDNR", "Instruction CV_ADDNR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -997,7 +1001,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADDRN : begin
 
-                `uvm_info("CV_ADDRN", "Instruction CV_ADDRN detected successfully", UVM_LOW)
+                `uvm_info("CV_ADDRN", "Instruction CV_ADDRN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -1014,7 +1018,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADDRNR : begin
 
-                `uvm_info("CV_ADDRNR", "Instruction CV_ADDRNR detected successfully", UVM_LOW)
+                `uvm_info("CV_ADDRNR", "Instruction CV_ADDRNR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -1030,19 +1034,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADD_SC : begin
 
-                `uvm_info("CV_ADD_SC", "Instruction CV_ADD_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_ADD_SC", "Instruction CV_ADD_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_ADD_SC_H", "Instruction CV_ADD_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_ADD_SC_H", "Instruction CV_ADD_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] + reg_file[rs2][15:0]) & 16'hFFFF;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_ADD_SC_B", "Instruction CV_ADD_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_ADD_SC_B", "Instruction CV_ADD_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] + reg_file[rs2][7:0]) & 8'hFF;
 					end
@@ -1052,7 +1056,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADD_SCI : begin
 
-                `uvm_info("CV_ADD_SCI", "Instruction CV_ADD_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_ADD_SCI", "Instruction CV_ADD_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -1060,12 +1064,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_ADD_SCI_H", "Instruction CV_ADD_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_ADD_SCI_H", "Instruction CV_ADD_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] + imm6_ext[15:0]) & 16'hFFFF;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_ADD_SCI_B", "Instruction CV_ADD_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_ADD_SCI_B", "Instruction CV_ADD_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] + imm6_ext[7:0]) & 8'hFF;
 					end
@@ -1075,7 +1079,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADDUN : begin
 
-                `uvm_info("CV_ADDUN", "Instruction CV_ADDUN detected successfully", UVM_LOW)
+                `uvm_info("CV_ADDUN", "Instruction CV_ADDUN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -1088,7 +1092,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADDUNR : begin
 
-                `uvm_info("CV_ADDUNR", "Instruction CV_ADDUNR detected successfully", UVM_LOW)
+                `uvm_info("CV_ADDUNR", "Instruction CV_ADDUNR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -1100,7 +1104,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADDURN : begin
 
-                `uvm_info("CV_ADDURN", "Instruction CV_ADDURN detected successfully", UVM_LOW)
+                `uvm_info("CV_ADDURN", "Instruction CV_ADDURN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -1117,7 +1121,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_ADDURNR : begin
 
-                `uvm_info("CV_ADDURNR", "Instruction CV_ADDURNR detected successfully", UVM_LOW)
+                `uvm_info("CV_ADDURNR", "Instruction CV_ADDURNR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -1133,19 +1137,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_AND : begin
 
-                `uvm_info("CV_AND", "Instruction CV_AND detected successfully", UVM_LOW)
+                `uvm_info("CV_AND", "Instruction CV_AND detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_AND_H", "Instruction CV_AND_H detected successfully", UVM_LOW);
+					`uvm_info("CV_AND_H", "Instruction CV_AND_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] & reg_file[rs2][(i*16)+:16];
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_AND_B", "Instruction CV_AND_B detected successfully", UVM_LOW);
+					`uvm_info("CV_AND_B", "Instruction CV_AND_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] & reg_file[rs2][(i*8)+:8];
 					end
@@ -1155,19 +1159,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_AND_SC : begin
 
-                `uvm_info("CV_AND_SC", "Instruction CV_AND_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_AND_SC", "Instruction CV_AND_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_AND_SC_H", "Instruction CV_AND_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_AND_SC_H", "Instruction CV_AND_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] & reg_file[rs2][15:0];
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_AND_SC_B", "Instruction CV_AND_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_AND_SC_B", "Instruction CV_AND_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] & reg_file[rs2][7:0];
 					end
@@ -1177,7 +1181,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_AND_SCI : begin
 
-                `uvm_info("CV_AND_SCI", "Instruction CV_AND_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_AND_SCI", "Instruction CV_AND_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -1185,12 +1189,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_AND_SCI_H", "Instruction CV_AND_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_AND_SCI_H", "Instruction CV_AND_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] & imm6_ext[15:0];
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_AND_SCI_B", "Instruction CV_AND_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_AND_SCI_B", "Instruction CV_AND_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] & imm6_ext[7:0];
 					end
@@ -1200,19 +1204,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_AVG : begin
 
-                `uvm_info("CV_AVG", "Instruction CV_AVG detected successfully", UVM_LOW)
+                `uvm_info("CV_AVG", "Instruction CV_AVG detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_AVG_H", "Instruction CV_AVG_H detected successfully", UVM_LOW);
+					`uvm_info("CV_AVG_H", "Instruction CV_AVG_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = $signed((reg_file[rs1][(i*16)+:16] + reg_file[rs2][(i*16)+:16]) & 16'hFFFF) >>> 1;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_AVG_B", "Instruction CV_AVG_B detected successfully", UVM_LOW);
+					`uvm_info("CV_AVG_B", "Instruction CV_AVG_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = $signed((reg_file[rs1][(i*8)+:8] + reg_file[rs2][(i*8)+:8]) & 8'hFF) >>> 1;
 					end
@@ -1222,19 +1226,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_AVG_SC : begin
 
-                `uvm_info("CV_AVG_SC", "Instruction CV_AVG_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_AVG_SC", "Instruction CV_AVG_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_AVG_SC_H", "Instruction CV_AVG_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_AVG_SC_H", "Instruction CV_AVG_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = $signed((reg_file[rs1][(i*16)+:16] + reg_file[rs2][15:0]) & 16'hFFFF) >>> 1;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_AVG_SC_B", "Instruction CV_AVG_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_AVG_SC_B", "Instruction CV_AVG_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = $signed((reg_file[rs1][(i*8)+:8] + reg_file[rs2][7:0]) & 8'hFF) >>> 1;
 					end
@@ -1244,7 +1248,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_AVG_SCI : begin
 
-                `uvm_info("CV_AVG_SCI", "Instruction CV_AVG_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_AVG_SCI", "Instruction CV_AVG_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -1252,12 +1256,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_AVG_SCI_H", "Instruction CV_AVG_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_AVG_SCI_H", "Instruction CV_AVG_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = $signed((reg_file[rs1][(i*16)+:16] + imm6_ext[15:0]) & 16'hFFFF) >>> 1;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_AVG_SCI_B", "Instruction CV_AVG_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_AVG_SCI_B", "Instruction CV_AVG_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = $signed((reg_file[rs1][(i*8)+:8] + imm6_ext[7:0]) & 8'hFF) >>> 1;
 					end
@@ -1267,19 +1271,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_AVGU : begin
 
-                `uvm_info("CV_AVGU", "Instruction CV_AVGU detected successfully", UVM_LOW)
+                `uvm_info("CV_AVGU", "Instruction CV_AVGU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_AVGU_H", "Instruction CV_AVGU_H detected successfully", UVM_LOW);
+					`uvm_info("CV_AVGU_H", "Instruction CV_AVGU_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = ((reg_file[rs1][(i*16)+:16] + reg_file[rs2][(i*16)+:16]) & 16'hFFFF) >> 1;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_AVGU_B", "Instruction CV_AVGU_B detected successfully", UVM_LOW);
+					`uvm_info("CV_AVGU_B", "Instruction CV_AVGU_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = ((reg_file[rs1][(i*8)+:8] + reg_file[rs2][(i*8)+:8]) & 8'hFF) >> 1;
 					end
@@ -1289,19 +1293,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_AVGU_SC : begin
 
-                `uvm_info("CV_AVGU_SC", "Instruction CV_AVGU_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_AVGU_SC", "Instruction CV_AVGU_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_AVGU_SC_H", "Instruction CV_AVGU_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_AVGU_SC_H", "Instruction CV_AVGU_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = ((reg_file[rs1][(i*16)+:16] + reg_file[rs2][15:0]) & 16'hFFFF) >> 1;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_AVGU_SC_B", "Instruction CV_AVGU_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_AVGU_SC_B", "Instruction CV_AVGU_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = ((reg_file[rs1][(i*8)+:8] + reg_file[rs2][7:0]) & 8'hFF) >> 1;
 					end
@@ -1311,7 +1315,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_AVGU_SCI : begin
 
-                `uvm_info("CV_AVGU_SCI", "Instruction CV_AVGU_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_AVGU_SCI", "Instruction CV_AVGU_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -1319,12 +1323,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_AVGU_SCI_H", "Instruction CV_AVGU_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_AVGU_SCI_H", "Instruction CV_AVGU_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = ((reg_file[rs1][(i*16)+:16] + imm6_ext[15:0]) & 16'hFFFF) >> 1;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_AVGU_SCI_B", "Instruction CV_AVGU_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_AVGU_SCI_B", "Instruction CV_AVGU_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = ((reg_file[rs1][(i*8)+:8] + imm6_ext[7:0]) & 8'hFF) >> 1;
 					end
@@ -1334,7 +1338,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CLIP : begin
 
-                `uvm_info("CV_CLIP", "Instruction CV_CLIP detected successfully", UVM_LOW)
+                `uvm_info("CV_CLIP", "Instruction CV_CLIP detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 ls2 = instr[24:20];
@@ -1362,7 +1366,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CLIPR : begin
 
-                `uvm_info("CV_CLIPR", "Instruction CV_CLIPR detected successfully", UVM_LOW)
+                `uvm_info("CV_CLIPR", "Instruction CV_CLIPR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -1381,7 +1385,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CLIPU : begin
 
-                `uvm_info("CV_CLIPU", "Instruction CV_CLIPU detected successfully", UVM_LOW)
+                `uvm_info("CV_CLIPU", "Instruction CV_CLIPU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 ls2 = instr[24:20];
@@ -1403,7 +1407,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CLIPUR : begin
 
-                `uvm_info("CV_CLIPUR", "Instruction CV_CLIPUR detected successfully", UVM_LOW)
+                `uvm_info("CV_CLIPUR", "Instruction CV_CLIPUR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -1422,14 +1426,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPEQ : begin
 
-                `uvm_info("CV_CMPEQ", "Instruction CV_CMPEQ detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPEQ", "Instruction CV_CMPEQ detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPEQ_H", "Instruction CV_CMPEQ_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPEQ_H", "Instruction CV_CMPEQ_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) == $signed(reg_file[rs2][31:16])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1441,7 +1445,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPEQ_B", "Instruction CV_CMPEQ_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPEQ_B", "Instruction CV_CMPEQ_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) == $signed(reg_file[rs2][31:24])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1468,14 +1472,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPEQ_SC : begin
 
-                `uvm_info("CV_CMPEQ_SC", "Instruction CV_CMPEQ_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPEQ_SC", "Instruction CV_CMPEQ_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPEQ_SC_H", "Instruction CV_CMPEQ_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPEQ_SC_H", "Instruction CV_CMPEQ_SC_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) == $signed(reg_file[rs2][15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1487,7 +1491,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPEQ_SC_B", "Instruction CV_CMPEQ_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPEQ_SC_B", "Instruction CV_CMPEQ_SC_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) == $signed(reg_file[rs2][7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1514,7 +1518,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPEQ_SCI : begin
 
-                `uvm_info("CV_CMPEQ_SCI", "Instruction CV_CMPEQ_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPEQ_SCI", "Instruction CV_CMPEQ_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -1522,7 +1526,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPEQ_SCI_H", "Instruction CV_CMPEQ_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPEQ_SCI_H", "Instruction CV_CMPEQ_SCI_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) == $signed(imm6_ext[15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1534,7 +1538,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPEQ_SCI_B", "Instruction CV_CMPEQ_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPEQ_SCI_B", "Instruction CV_CMPEQ_SCI_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) == $signed(imm6_ext[7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1561,14 +1565,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGE : begin
 
-                `uvm_info("CV_CMPGE", "Instruction CV_CMPGE detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGE", "Instruction CV_CMPGE detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGE_H", "Instruction CV_CMPGE_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGE_H", "Instruction CV_CMPGE_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) >= $signed(reg_file[rs2][31:16])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1580,7 +1584,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGE_B", "Instruction CV_CMPGE_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGE_B", "Instruction CV_CMPGE_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) >= $signed(reg_file[rs2][31:24])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1607,14 +1611,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGE_SC : begin
 
-                `uvm_info("CV_CMPGE_SC", "Instruction CV_CMPGE_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGE_SC", "Instruction CV_CMPGE_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGE_SC_H", "Instruction CV_CMPGE_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGE_SC_H", "Instruction CV_CMPGE_SC_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) >= $signed(reg_file[rs2][15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1626,7 +1630,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGE_SC_B", "Instruction CV_CMPGE_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGE_SC_B", "Instruction CV_CMPGE_SC_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) >= $signed(reg_file[rs2][7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1653,7 +1657,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGE_SCI : begin
 
-                `uvm_info("CV_CMPGE_SCI", "Instruction CV_CMPGE_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGE_SCI", "Instruction CV_CMPGE_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -1661,7 +1665,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGE_SCI_H", "Instruction CV_CMPGE_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGE_SCI_H", "Instruction CV_CMPGE_SCI_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) >= $signed(imm6_ext[15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1673,7 +1677,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGE_SCI_B", "Instruction CV_CMPGE_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGE_SCI_B", "Instruction CV_CMPGE_SCI_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) >= $signed(imm6_ext[7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1700,14 +1704,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGEU : begin
 
-                `uvm_info("CV_CMPGEU", "Instruction CV_CMPGEU detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGEU", "Instruction CV_CMPGEU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGEU_H", "Instruction CV_CMPGEU_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGEU_H", "Instruction CV_CMPGEU_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] >= reg_file[rs2][31:16]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1719,7 +1723,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGEU_B", "Instruction CV_CMPGEU_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGEU_B", "Instruction CV_CMPGEU_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] >= reg_file[rs2][31:24]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1746,14 +1750,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGEU_SC : begin
 
-                `uvm_info("CV_CMPGEU_SC", "Instruction CV_CMPGEU_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGEU_SC", "Instruction CV_CMPGEU_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGEU_SC_H", "Instruction CV_CMPGEU_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGEU_SC_H", "Instruction CV_CMPGEU_SC_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] >= reg_file[rs2][15:0]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1765,7 +1769,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGEU_SC_B", "Instruction CV_CMPGEU_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGEU_SC_B", "Instruction CV_CMPGEU_SC_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] >= reg_file[rs2][7:0]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1792,7 +1796,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGEU_SCI : begin
 
-                `uvm_info("CV_CMPGEU_SCI", "Instruction CV_CMPGEU_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGEU_SCI", "Instruction CV_CMPGEU_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -1800,7 +1804,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGEU_SCI_H", "Instruction CV_CMPGEU_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGEU_SCI_H", "Instruction CV_CMPGEU_SCI_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] >= imm6_ext[15:0]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1812,7 +1816,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGEU_SCI_B", "Instruction CV_CMPGEU_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGEU_SCI_B", "Instruction CV_CMPGEU_SCI_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] >= imm6_ext[7:0]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1839,14 +1843,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGT : begin
 
-                `uvm_info("CV_CMPGT", "Instruction CV_CMPGT detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGT", "Instruction CV_CMPGT detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGT_H", "Instruction CV_CMPGT_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGT_H", "Instruction CV_CMPGT_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) > $signed(reg_file[rs2][31:16])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1858,7 +1862,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGT_B", "Instruction CV_CMPGT_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGT_B", "Instruction CV_CMPGT_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) > $signed(reg_file[rs2][31:24])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1885,14 +1889,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGT_SC : begin
 
-                `uvm_info("CV_CMPGT_SC", "Instruction CV_CMPGT_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGT_SC", "Instruction CV_CMPGT_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGT_SC_H", "Instruction CV_CMPGT_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGT_SC_H", "Instruction CV_CMPGT_SC_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) > $signed(reg_file[rs2][15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1904,7 +1908,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGT_SC_B", "Instruction CV_CMPGT_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGT_SC_B", "Instruction CV_CMPGT_SC_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) > $signed(reg_file[rs2][7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1931,7 +1935,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGT_SCI : begin
 
-                `uvm_info("CV_CMPGT_SCI", "Instruction CV_CMPGT_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGT_SCI", "Instruction CV_CMPGT_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -1939,7 +1943,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGT_SCI_H", "Instruction CV_CMPGT_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGT_SCI_H", "Instruction CV_CMPGT_SCI_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) > $signed(imm6_ext[15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1951,7 +1955,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGT_SCI_B", "Instruction CV_CMPGT_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGT_SCI_B", "Instruction CV_CMPGT_SCI_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) > $signed(imm6_ext[7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -1978,14 +1982,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGTU : begin
 
-                `uvm_info("CV_CMPGTU", "Instruction CV_CMPGTU detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGTU", "Instruction CV_CMPGTU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGTU_H", "Instruction CV_CMPGTU_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGTU_H", "Instruction CV_CMPGTU_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] > reg_file[rs2][31:16]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -1997,7 +2001,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGTU_B", "Instruction CV_CMPGTU_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGTU_B", "Instruction CV_CMPGTU_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] > reg_file[rs2][31:24]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2024,14 +2028,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGTU_SC : begin
 
-                `uvm_info("CV_CMPGTU_SC", "Instruction CV_CMPGTU_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGTU_SC", "Instruction CV_CMPGTU_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGTU_SC_H", "Instruction CV_CMPGTU_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGTU_SC_H", "Instruction CV_CMPGTU_SC_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] > reg_file[rs2][15:0]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2043,7 +2047,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGTU_SC_B", "Instruction CV_CMPGTU_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGTU_SC_B", "Instruction CV_CMPGTU_SC_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] > reg_file[rs2][7:0]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2070,7 +2074,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPGTU_SCI : begin
 
-                `uvm_info("CV_CMPGTU_SCI", "Instruction CV_CMPGTU_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPGTU_SCI", "Instruction CV_CMPGTU_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -2078,7 +2082,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPGTU_SCI_H", "Instruction CV_CMPGTU_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGTU_SCI_H", "Instruction CV_CMPGTU_SCI_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] > imm6_ext[15:0]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2090,7 +2094,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPGTU_SCI_B", "Instruction CV_CMPGTU_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPGTU_SCI_B", "Instruction CV_CMPGTU_SCI_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] > imm6_ext[7:0]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2117,14 +2121,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLE : begin
 
-                `uvm_info("CV_CMPLE", "Instruction CV_CMPLE detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLE", "Instruction CV_CMPLE detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLE_H", "Instruction CV_CMPLE_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLE_H", "Instruction CV_CMPLE_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) <= $signed(reg_file[rs2][31:16])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2136,7 +2140,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLE_B", "Instruction CV_CMPLE_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLE_B", "Instruction CV_CMPLE_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) <= $signed(reg_file[rs2][31:24])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2163,14 +2167,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLE_SC : begin
 
-                `uvm_info("CV_CMPLE_SC", "Instruction CV_CMPLE_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLE_SC", "Instruction CV_CMPLE_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLE_SC_H", "Instruction CV_CMPLE_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLE_SC_H", "Instruction CV_CMPLE_SC_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) <= $signed(reg_file[rs2][15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2182,7 +2186,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLE_SC_B", "Instruction CV_CMPLE_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLE_SC_B", "Instruction CV_CMPLE_SC_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) <= $signed(reg_file[rs2][7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2209,7 +2213,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLE_SCI : begin
 
-                `uvm_info("CV_CMPLE_SCI", "Instruction CV_CMPLE_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLE_SCI", "Instruction CV_CMPLE_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -2217,7 +2221,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLE_SCI_H", "Instruction CV_CMPLE_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLE_SCI_H", "Instruction CV_CMPLE_SCI_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) <= $signed(imm6_ext[15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2229,7 +2233,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLE_SCI_B", "Instruction CV_CMPLE_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLE_SCI_B", "Instruction CV_CMPLE_SCI_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) <= $signed(imm6_ext[7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2256,14 +2260,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLEU : begin
 
-                `uvm_info("CV_CMPLEU", "Instruction CV_CMPLEU detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLEU", "Instruction CV_CMPLEU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLEU_H", "Instruction CV_CMPLEU_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLEU_H", "Instruction CV_CMPLEU_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] <= reg_file[rs2][31:16]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2275,7 +2279,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLEU_B", "Instruction CV_CMPLEU_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLEU_B", "Instruction CV_CMPLEU_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] <= reg_file[rs2][31:24]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2302,14 +2306,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLEU_SC : begin
 
-                `uvm_info("CV_CMPLEU_SC", "Instruction CV_CMPLEU_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLEU_SC", "Instruction CV_CMPLEU_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLEU_SC_H", "Instruction CV_CMPLEU_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLEU_SC_H", "Instruction CV_CMPLEU_SC_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] <= reg_file[rs2][15:0]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2321,7 +2325,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLEU_SC_B", "Instruction CV_CMPLEU_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLEU_SC_B", "Instruction CV_CMPLEU_SC_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] <= reg_file[rs2][7:0]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2348,7 +2352,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLEU_SCI : begin
 
-                `uvm_info("CV_CMPLEU_SCI", "Instruction CV_CMPLEU_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLEU_SCI", "Instruction CV_CMPLEU_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -2356,7 +2360,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLEU_SCI_H", "Instruction CV_CMPLEU_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLEU_SCI_H", "Instruction CV_CMPLEU_SCI_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] <= imm6_ext[15:0]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2368,7 +2372,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLEU_SCI_B", "Instruction CV_CMPLEU_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLEU_SCI_B", "Instruction CV_CMPLEU_SCI_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] <= imm6_ext[7:0]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2395,14 +2399,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLT : begin
 
-                `uvm_info("CV_CMPLT", "Instruction CV_CMPLT detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLT", "Instruction CV_CMPLT detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLT_H", "Instruction CV_CMPLT_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLT_H", "Instruction CV_CMPLT_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) < $signed(reg_file[rs2][31:16])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2414,7 +2418,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLT_B", "Instruction CV_CMPLT_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLT_B", "Instruction CV_CMPLT_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) < $signed(reg_file[rs2][31:24])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2441,14 +2445,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLT_SC : begin
 
-                `uvm_info("CV_CMPLT_SC", "Instruction CV_CMPLT_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLT_SC", "Instruction CV_CMPLT_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLT_SC_H", "Instruction CV_CMPLT_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLT_SC_H", "Instruction CV_CMPLT_SC_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) < $signed(reg_file[rs2][15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2460,7 +2464,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLT_SC_B", "Instruction CV_CMPLT_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLT_SC_B", "Instruction CV_CMPLT_SC_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) < $signed(reg_file[rs2][7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2487,7 +2491,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLT_SCI : begin
 
-                `uvm_info("CV_CMPLT_SCI", "Instruction CV_CMPLT_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLT_SCI", "Instruction CV_CMPLT_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -2495,7 +2499,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLT_SCI_H", "Instruction CV_CMPLT_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLT_SCI_H", "Instruction CV_CMPLT_SCI_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) < $signed(imm6_ext[15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2507,7 +2511,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLT_SCI_B", "Instruction CV_CMPLT_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLT_SCI_B", "Instruction CV_CMPLT_SCI_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) < $signed(imm6_ext[7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2534,14 +2538,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLTU : begin
 
-                `uvm_info("CV_CMPLTU", "Instruction CV_CMPLTU detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLTU", "Instruction CV_CMPLTU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLTU_H", "Instruction CV_CMPLTU_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLTU_H", "Instruction CV_CMPLTU_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] < reg_file[rs2][31:16]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2553,7 +2557,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLTU_B", "Instruction CV_CMPLTU_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLTU_B", "Instruction CV_CMPLTU_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] < reg_file[rs2][31:24]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2580,14 +2584,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLTU_SC : begin
 
-                `uvm_info("CV_CMPLTU_SC", "Instruction CV_CMPLTU_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLTU_SC", "Instruction CV_CMPLTU_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLTU_SC_H", "Instruction CV_CMPLTU_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLTU_SC_H", "Instruction CV_CMPLTU_SC_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] < reg_file[rs2][15:0]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2599,7 +2603,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLTU_SC_B", "Instruction CV_CMPLTU_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLTU_SC_B", "Instruction CV_CMPLTU_SC_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] < reg_file[rs2][7:0]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2626,7 +2630,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPLTU_SCI : begin
 
-                `uvm_info("CV_CMPLTU_SCI", "Instruction CV_CMPLTU_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPLTU_SCI", "Instruction CV_CMPLTU_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -2634,7 +2638,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPLTU_SCI_H", "Instruction CV_CMPLTU_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLTU_SCI_H", "Instruction CV_CMPLTU_SCI_H detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:16] < imm6_ext[15:0]) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2646,7 +2650,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPLTU_SCI_B", "Instruction CV_CMPLTU_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPLTU_SCI_B", "Instruction CV_CMPLTU_SCI_B detected successfully", UVM_MEDIUM);
 					if (reg_file[rs1][31:24] < imm6_ext[7:0]) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2673,14 +2677,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPNE : begin
 
-                `uvm_info("CV_CMPNE", "Instruction CV_CMPNE detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPNE", "Instruction CV_CMPNE detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPNE_H", "Instruction CV_CMPNE_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPNE_H", "Instruction CV_CMPNE_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) != $signed(reg_file[rs2][31:16])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2692,7 +2696,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPNE_B", "Instruction CV_CMPNE_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPNE_B", "Instruction CV_CMPNE_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) != $signed(reg_file[rs2][31:24])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2719,14 +2723,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPNE_SC : begin
 
-                `uvm_info("CV_CMPNE_SC", "Instruction CV_CMPNE_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPNE_SC", "Instruction CV_CMPNE_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPNE_SC_H", "Instruction CV_CMPNE_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPNE_SC_H", "Instruction CV_CMPNE_SC_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) != $signed(reg_file[rs2][15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2738,7 +2742,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPNE_SC_B", "Instruction CV_CMPNE_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPNE_SC_B", "Instruction CV_CMPNE_SC_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) != $signed(reg_file[rs2][7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2765,7 +2769,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_CMPNE_SCI : begin
 
-                `uvm_info("CV_CMPNE_SCI", "Instruction CV_CMPNE_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_CMPNE_SCI", "Instruction CV_CMPNE_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -2773,7 +2777,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_CMPNE_SCI_H", "Instruction CV_CMPNE_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPNE_SCI_H", "Instruction CV_CMPNE_SCI_H detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:16]) != $signed(imm6_ext[15:0])) begin
 						reg_file[rd][31:16] = 16'hFFFF;
 					end else begin
@@ -2785,7 +2789,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						reg_file[rd][15:0] = 16'h0000;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_CMPNE_SCI_B", "Instruction CV_CMPNE_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_CMPNE_SCI_B", "Instruction CV_CMPNE_SCI_B detected successfully", UVM_MEDIUM);
 					if ($signed(reg_file[rs1][31:24]) != $signed(imm6_ext[7:0])) begin
 						reg_file[rd][31:24] = 8'hFF;
 					end else begin
@@ -2810,9 +2814,32 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_COUNT : begin
+
+                `uvm_info("CV_COUNT", "Instruction CV_COUNT detected successfully", UVM_MEDIUM)
+                rs1 = instr[19:15];
+                L = instr[7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				lpcount[L] = reg_file[rs1];
+
+            end
+
+            CV_COUNTI : begin
+
+                `uvm_info("CV_COUNTI", "Instruction CV_COUNTI detected successfully", UVM_MEDIUM)
+                imm12 = instr[31:20];
+                L = instr[7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{1'b0}}, imm12};
+				lpcount[L] = imm12_ext;
+
+            end
+
             CV_DOTSP : begin
 
-                `uvm_info("CV_DOTSP", "Instruction CV_DOTSP detected successfully", UVM_LOW)
+                `uvm_info("CV_DOTSP", "Instruction CV_DOTSP detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -2820,17 +2847,17 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTSP_H", "Instruction CV_DOTSP_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTSP_H", "Instruction CV_DOTSP_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{reg_file[rs2][(i*16)+15]}}, reg_file[rs2][(i*16)+:16]});
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTSP_B", "Instruction CV_DOTSP_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTSP_B", "Instruction CV_DOTSP_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
 					end
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_DOTSP_MX", "Instruction CV_DOTSP_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTSP_MX", "Instruction CV_DOTSP_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
@@ -2847,7 +2874,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_DOTSP_SC : begin
 
-                `uvm_info("CV_DOTSP_SC", "Instruction CV_DOTSP_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_DOTSP_SC", "Instruction CV_DOTSP_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -2855,17 +2882,17 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTSP_SC_H", "Instruction CV_DOTSP_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTSP_SC_H", "Instruction CV_DOTSP_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]});
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTSP_SC_B", "Instruction CV_DOTSP_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTSP_SC_B", "Instruction CV_DOTSP_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
 					end
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_DOTSP_SC_MX", "Instruction CV_DOTSP_SC_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTSP_SC_MX", "Instruction CV_DOTSP_SC_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
@@ -2882,7 +2909,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_DOTSP_SCI : begin
 
-                `uvm_info("CV_DOTSP_SCI", "Instruction CV_DOTSP_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_DOTSP_SCI", "Instruction CV_DOTSP_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -2891,17 +2918,17 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTSP_SCI_H", "Instruction CV_DOTSP_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTSP_SCI_H", "Instruction CV_DOTSP_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{imm6_ext[15]}}, imm6_ext[15:0]});
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTSP_SCI_B", "Instruction CV_DOTSP_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTSP_SCI_B", "Instruction CV_DOTSP_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
 					end
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_DOTSP_SCI_MX", "Instruction CV_DOTSP_SCI_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTSP_SCI_MX", "Instruction CV_DOTSP_SCI_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_file[rd] += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
@@ -2918,7 +2945,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_DOTUP : begin
 
-                `uvm_info("CV_DOTUP", "Instruction CV_DOTUP detected successfully", UVM_LOW)
+                `uvm_info("CV_DOTUP", "Instruction CV_DOTUP detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -2926,17 +2953,17 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTUP_H", "Instruction CV_DOTUP_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_H", "Instruction CV_DOTUP_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, reg_file[rs2][(i*16)+:16]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTUP_B", "Instruction CV_DOTUP_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_B", "Instruction CV_DOTUP_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_DOTUP_MX", "Instruction CV_DOTUP_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_MX", "Instruction CV_DOTUP_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
@@ -2953,7 +2980,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_DOTUP_SC : begin
 
-                `uvm_info("CV_DOTUP_SC", "Instruction CV_DOTUP_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_DOTUP_SC", "Instruction CV_DOTUP_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -2961,17 +2988,17 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTUP_SC_H", "Instruction CV_DOTUP_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_SC_H", "Instruction CV_DOTUP_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, reg_file[rs2][15:0]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTUP_SC_B", "Instruction CV_DOTUP_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_SC_B", "Instruction CV_DOTUP_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][7:0]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_DOTUP_SC_MX", "Instruction CV_DOTUP_SC_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_SC_MX", "Instruction CV_DOTUP_SC_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][7:0]};
@@ -2988,7 +3015,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_DOTUP_SCI : begin
 
-                `uvm_info("CV_DOTUP_SCI", "Instruction CV_DOTUP_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_DOTUP_SCI", "Instruction CV_DOTUP_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -2997,17 +3024,17 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTUP_SCI_H", "Instruction CV_DOTUP_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_SCI_H", "Instruction CV_DOTUP_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, imm6_ext[15:0]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTUP_SCI_B", "Instruction CV_DOTUP_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_SCI_B", "Instruction CV_DOTUP_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, imm6_ext[7:0]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_DOTUP_SCI_MX", "Instruction CV_DOTUP_SCI_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUP_SCI_MX", "Instruction CV_DOTUP_SCI_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, imm6_ext[7:0]};
@@ -3024,7 +3051,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_DOTUSP : begin
 
-                `uvm_info("CV_DOTUSP", "Instruction CV_DOTUSP detected successfully", UVM_LOW)
+                `uvm_info("CV_DOTUSP", "Instruction CV_DOTUSP detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3032,17 +3059,17 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTUSP_H", "Instruction CV_DOTUSP_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUSP_H", "Instruction CV_DOTUSP_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{reg_file[rs2][(i*16)+15]}}, reg_file[rs2][(i*16)+:16]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTUSP_B", "Instruction CV_DOTUSP_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUSP_B", "Instruction CV_DOTUSP_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_DOTUSP_MX", "Instruction CV_DOTUSP_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUSP_MX", "Instruction CV_DOTUSP_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]};
@@ -3059,7 +3086,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_DOTUSP_SC : begin
 
-                `uvm_info("CV_DOTUSP_SC", "Instruction CV_DOTUSP_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_DOTUSP_SC", "Instruction CV_DOTUSP_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3067,17 +3094,17 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTUSP_SC_H", "Instruction CV_DOTUSP_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUSP_SC_H", "Instruction CV_DOTUSP_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTUSP_SC_B", "Instruction CV_DOTUSP_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUSP_SC_B", "Instruction CV_DOTUSP_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_DOTUSP_SC_MX", "Instruction CV_DOTUSP_SC_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUSP_SC_MX", "Instruction CV_DOTUSP_SC_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]};
@@ -3094,7 +3121,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_DOTUSP_SCI : begin
 
-                `uvm_info("CV_DOTUSP_SCI", "Instruction CV_DOTUSP_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_DOTUSP_SCI", "Instruction CV_DOTUSP_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -3103,17 +3130,17 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				reg_file[rd] = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_DOTUSP_SCI_H", "Instruction CV_DOTUSP_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUSP_SCI_H", "Instruction CV_DOTUSP_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{imm6_ext[15]}}, imm6_ext[15:0]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_DOTUSP_SCI_B", "Instruction CV_DOTUSP_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUSP_SCI_B", "Instruction CV_DOTUSP_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd] += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{imm6_ext[7]}}, imm6_ext[7:0]};
 					end
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_DOTUSP_SCI_MX", "Instruction CV_DOTUSP_SCI_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_DOTUSP_SCI_MX", "Instruction CV_DOTUSP_SCI_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_file[rd] += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{imm6_ext[7]}}, imm6_ext[7:0]};
@@ -3128,9 +3155,32 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_END : begin
+
+                `uvm_info("CV_END", "Instruction CV_END detected successfully", UVM_MEDIUM)
+                rs1 = instr[19:15];
+                L = instr[7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				lpend[L] = reg_file[rs1];
+
+            end
+
+            CV_ENDI : begin
+
+                `uvm_info("CV_ENDI", "Instruction CV_ENDI detected successfully", UVM_MEDIUM)
+                imm12 = instr[31:20];
+                L = instr[7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{1'b0}}, imm12};
+				lpend[L] = pc + (imm12_ext << 2);
+
+            end
+
             CV_EXTBS : begin
 
-                `uvm_info("CV_EXTBS", "Instruction CV_EXTBS detected successfully", UVM_LOW)
+                `uvm_info("CV_EXTBS", "Instruction CV_EXTBS detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 reg_rs1_prev = reg_file[rs1];
@@ -3141,7 +3191,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_EXTBZ : begin
 
-                `uvm_info("CV_EXTBZ", "Instruction CV_EXTBZ detected successfully", UVM_LOW)
+                `uvm_info("CV_EXTBZ", "Instruction CV_EXTBZ detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 reg_rs1_prev = reg_file[rs1];
@@ -3152,7 +3202,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_EXTHS : begin
 
-                `uvm_info("CV_EXTHS", "Instruction CV_EXTHS detected successfully", UVM_LOW)
+                `uvm_info("CV_EXTHS", "Instruction CV_EXTHS detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 reg_rs1_prev = reg_file[rs1];
@@ -3163,7 +3213,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_EXTHZ : begin
 
-                `uvm_info("CV_EXTHZ", "Instruction CV_EXTHZ detected successfully", UVM_LOW)
+                `uvm_info("CV_EXTHZ", "Instruction CV_EXTHZ detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 reg_rs1_prev = reg_file[rs1];
@@ -3174,7 +3224,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LB_RIPI : begin
 
-                `uvm_info("CV_LB_RIPI", "Instruction CV_LB_RIPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LB_RIPI", "Instruction CV_LB_RIPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -3188,7 +3238,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LB_RR : begin
 
-                `uvm_info("CV_LB_RR", "Instruction CV_LB_RR detected successfully", UVM_LOW)
+                `uvm_info("CV_LB_RR", "Instruction CV_LB_RR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3200,7 +3250,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LB_RRPI : begin
 
-                `uvm_info("CV_LB_RRPI", "Instruction CV_LB_RRPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LB_RRPI", "Instruction CV_LB_RRPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3213,7 +3263,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LBU_RIPI : begin
 
-                `uvm_info("CV_LBU_RIPI", "Instruction CV_LBU_RIPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LBU_RIPI", "Instruction CV_LBU_RIPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -3227,7 +3277,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LBU_RR : begin
 
-                `uvm_info("CV_LBU_RR", "Instruction CV_LBU_RR detected successfully", UVM_LOW)
+                `uvm_info("CV_LBU_RR", "Instruction CV_LBU_RR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3239,7 +3289,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LBU_RRPI : begin
 
-                `uvm_info("CV_LBU_RRPI", "Instruction CV_LBU_RRPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LBU_RRPI", "Instruction CV_LBU_RRPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3252,7 +3302,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LH_RIPI : begin
 
-                `uvm_info("CV_LH_RIPI", "Instruction CV_LH_RIPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LH_RIPI", "Instruction CV_LH_RIPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -3266,7 +3316,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LH_RR : begin
 
-                `uvm_info("CV_LH_RR", "Instruction CV_LH_RR detected successfully", UVM_LOW)
+                `uvm_info("CV_LH_RR", "Instruction CV_LH_RR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3278,7 +3328,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LH_RRPI : begin
 
-                `uvm_info("CV_LH_RRPI", "Instruction CV_LH_RRPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LH_RRPI", "Instruction CV_LH_RRPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3291,7 +3341,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LHU_RIPI : begin
 
-                `uvm_info("CV_LHU_RIPI", "Instruction CV_LHU_RIPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LHU_RIPI", "Instruction CV_LHU_RIPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -3305,7 +3355,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LHU_RR : begin
 
-                `uvm_info("CV_LHU_RR", "Instruction CV_LHU_RR detected successfully", UVM_LOW)
+                `uvm_info("CV_LHU_RR", "Instruction CV_LHU_RR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3317,7 +3367,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LHU_RRPI : begin
 
-                `uvm_info("CV_LHU_RRPI", "Instruction CV_LHU_RRPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LHU_RRPI", "Instruction CV_LHU_RRPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3330,7 +3380,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LW_RIPI : begin
 
-                `uvm_info("CV_LW_RIPI", "Instruction CV_LW_RIPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LW_RIPI", "Instruction CV_LW_RIPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -3344,7 +3394,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LW_RR : begin
 
-                `uvm_info("CV_LW_RR", "Instruction CV_LW_RR detected successfully", UVM_LOW)
+                `uvm_info("CV_LW_RR", "Instruction CV_LW_RR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3356,7 +3406,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_LW_RRPI : begin
 
-                `uvm_info("CV_LW_RRPI", "Instruction CV_LW_RRPI detected successfully", UVM_LOW)
+                `uvm_info("CV_LW_RRPI", "Instruction CV_LW_RRPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3369,7 +3419,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MAC : begin
 
-                `uvm_info("CV_MAC", "Instruction CV_MAC detected successfully", UVM_LOW)
+                `uvm_info("CV_MAC", "Instruction CV_MAC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3381,7 +3431,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MACHHSN : begin
 
-                `uvm_info("CV_MACHHSN", "Instruction CV_MACHHSN detected successfully", UVM_LOW)
+                `uvm_info("CV_MACHHSN", "Instruction CV_MACHHSN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3389,10 +3439,10 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MACHHSN_H", "Instruction CV_MACHHSN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MACHHSN_H", "Instruction CV_MACHHSN_H detected successfully", UVM_MEDIUM);
 					reg_file[rd] = $signed(({{16{reg_file[rs1][31]}}, reg_file[rs1][31:16]} * {{16{reg_file[rs2][31]}}, reg_file[rs2][31:16]}) + reg_file[rd]) >>> ls3;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MACHHSN_B", "Instruction CV_MACHHSN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MACHHSN_B", "Instruction CV_MACHHSN_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_mac_mul_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
 						reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
@@ -3403,7 +3453,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MACHHSRN : begin
 
-                `uvm_info("CV_MACHHSRN", "Instruction CV_MACHHSRN detected successfully", UVM_LOW)
+                `uvm_info("CV_MACHHSRN", "Instruction CV_MACHHSRN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3411,14 +3461,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MACHHSRN_H", "Instruction CV_MACHHSRN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MACHHSRN_H", "Instruction CV_MACHHSRN_H detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						reg_file[rd] = $signed(({{16{reg_file[rs1][31]}}, reg_file[rs1][31:16]} * {{16{reg_file[rs2][31]}}, reg_file[rs2][31:16]}) + reg_file[rd] + (1 << (ls3-1))) >>> ls3;
 					end else begin
 						reg_file[rd] = $signed(({{16{reg_file[rs1][31]}}, reg_file[rs1][31:16]} * {{16{reg_file[rs2][31]}}, reg_file[rs2][31:16]}) + reg_file[rd]) >>> ls3;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MACHHSRN_B", "Instruction CV_MACHHSRN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MACHHSRN_B", "Instruction CV_MACHHSRN_B detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}) + (1 << (ls3-1)));
@@ -3436,7 +3486,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MACHHUN : begin
 
-                `uvm_info("CV_MACHHUN", "Instruction CV_MACHHUN detected successfully", UVM_LOW)
+                `uvm_info("CV_MACHHUN", "Instruction CV_MACHHUN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3444,10 +3494,10 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MACHHUN_H", "Instruction CV_MACHHUN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MACHHUN_H", "Instruction CV_MACHHUN_H detected successfully", UVM_MEDIUM);
 					reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][31:16]} * {{16{1'b0}}, reg_file[rs2][31:16]}) + reg_file[rd]) >> ls3;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MACHHUN_B", "Instruction CV_MACHHUN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MACHHUN_B", "Instruction CV_MACHHUN_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + reg_file[rd][(i*16)+:16]);
 						reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
@@ -3458,7 +3508,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MACHHURN : begin
 
-                `uvm_info("CV_MACHHURN", "Instruction CV_MACHHURN detected successfully", UVM_LOW)
+                `uvm_info("CV_MACHHURN", "Instruction CV_MACHHURN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3466,14 +3516,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MACHHURN_H", "Instruction CV_MACHHURN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MACHHURN_H", "Instruction CV_MACHHURN_H detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][31:16]} * {{16{1'b0}}, reg_file[rs2][31:16]}) + reg_file[rd] + (1 << (ls3-1))) >> ls3;
 					end else begin
 						reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][31:16]} * {{16{1'b0}}, reg_file[rs2][31:16]}) + reg_file[rd]) >> ls3;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MACHHURN_B", "Instruction CV_MACHHURN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MACHHURN_B", "Instruction CV_MACHHURN_B detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + reg_file[rd][(i*16)+:16] + (1 << (ls3-1)));
@@ -3491,7 +3541,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MACSN : begin
 
-                `uvm_info("CV_MACSN", "Instruction CV_MACSN detected successfully", UVM_LOW)
+                `uvm_info("CV_MACSN", "Instruction CV_MACSN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3499,10 +3549,10 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MACSN_H", "Instruction CV_MACSN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MACSN_H", "Instruction CV_MACSN_H detected successfully", UVM_MEDIUM);
 					reg_file[rd] = $signed(({{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]}) + reg_file[rd]) >>> ls3;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MACSN_B", "Instruction CV_MACSN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MACSN_B", "Instruction CV_MACSN_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_mac_mul_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}));
 						reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
@@ -3513,7 +3563,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MACSRN : begin
 
-                `uvm_info("CV_MACSRN", "Instruction CV_MACSRN detected successfully", UVM_LOW)
+                `uvm_info("CV_MACSRN", "Instruction CV_MACSRN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3521,14 +3571,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MACSRN_H", "Instruction CV_MACSRN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MACSRN_H", "Instruction CV_MACSRN_H detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						reg_file[rd] = $signed(({{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]}) + reg_file[rd] + (1 << (ls3-1))) >>> ls3;
 					end else begin
 						reg_file[rd] = $signed(({{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]}) + reg_file[rd]) >>> ls3;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MACSRN_B", "Instruction CV_MACSRN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MACSRN_B", "Instruction CV_MACSRN_B detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + ({{16{reg_file[rd][(i*16)+15]}}, reg_file[rd][(i*16)+:16]}) + (1 << (ls3-1)));
@@ -3546,7 +3596,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MACUN : begin
 
-                `uvm_info("CV_MACUN", "Instruction CV_MACUN detected successfully", UVM_LOW)
+                `uvm_info("CV_MACUN", "Instruction CV_MACUN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3554,10 +3604,10 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MACUN_H", "Instruction CV_MACUN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MACUN_H", "Instruction CV_MACUN_H detected successfully", UVM_MEDIUM);
 					reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][15:0]} * {{16{1'b0}}, reg_file[rs2][15:0]}) + reg_file[rd]) >> ls3;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MACUN_B", "Instruction CV_MACUN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MACUN_B", "Instruction CV_MACUN_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + reg_file[rd][(i*16)+:16]);
 						reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
@@ -3568,7 +3618,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MACURN : begin
 
-                `uvm_info("CV_MACURN", "Instruction CV_MACURN detected successfully", UVM_LOW)
+                `uvm_info("CV_MACURN", "Instruction CV_MACURN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3576,14 +3626,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MACURN_H", "Instruction CV_MACURN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MACURN_H", "Instruction CV_MACURN_H detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][15:0]} * {{16{1'b0}}, reg_file[rs2][15:0]}) + reg_file[rd] + (1 << (ls3-1))) >> ls3;
 					end else begin
 						reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][15:0]} * {{16{1'b0}}, reg_file[rs2][15:0]}) + reg_file[rd]) >> ls3;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MACURN_B", "Instruction CV_MACURN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MACURN_B", "Instruction CV_MACURN_B detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + reg_file[rd][(i*16)+:16] + (1 << (ls3-1)));
@@ -3601,14 +3651,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MAX : begin
 
-                `uvm_info("CV_MAX", "Instruction CV_MAX detected successfully", UVM_LOW)
+                `uvm_info("CV_MAX", "Instruction CV_MAX detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MAX_H", "Instruction CV_MAX_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MAX_H", "Instruction CV_MAX_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if ($signed(reg_file[rs1][(i*16)+:16]) > $signed(reg_file[rs2][(i*16)+:16])) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3617,7 +3667,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MAX_B", "Instruction CV_MAX_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MAX_B", "Instruction CV_MAX_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if ($signed(reg_file[rs1][(i*8)+:8]) > $signed(reg_file[rs2][(i*8)+:8])) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3631,14 +3681,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MAX_SC : begin
 
-                `uvm_info("CV_MAX_SC", "Instruction CV_MAX_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_MAX_SC", "Instruction CV_MAX_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MAX_SC_H", "Instruction CV_MAX_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MAX_SC_H", "Instruction CV_MAX_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if ($signed(reg_file[rs1][(i*16)+:16]) > $signed(reg_file[rs2][15:0])) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3647,7 +3697,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MAX_SC_B", "Instruction CV_MAX_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MAX_SC_B", "Instruction CV_MAX_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if ($signed(reg_file[rs1][(i*8)+:8]) > $signed(reg_file[rs2][7:0])) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3661,7 +3711,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MAX_SCI : begin
 
-                `uvm_info("CV_MAX_SCI", "Instruction CV_MAX_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_MAX_SCI", "Instruction CV_MAX_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -3669,7 +3719,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MAX_SCI_H", "Instruction CV_MAX_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MAX_SCI_H", "Instruction CV_MAX_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if ($signed(reg_file[rs1][(i*16)+:16]) > $signed(imm6_ext[15:0])) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3678,7 +3728,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MAX_SCI_B", "Instruction CV_MAX_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MAX_SCI_B", "Instruction CV_MAX_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if ($signed(reg_file[rs1][(i*8)+:8]) > $signed(imm6_ext[7:0])) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3692,7 +3742,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MAX_W : begin
 
-                `uvm_info("CV_MAX_W", "Instruction CV_MAX_W detected successfully", UVM_LOW)
+                `uvm_info("CV_MAX_W", "Instruction CV_MAX_W detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3708,14 +3758,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MAXU : begin
 
-                `uvm_info("CV_MAXU", "Instruction CV_MAXU detected successfully", UVM_LOW)
+                `uvm_info("CV_MAXU", "Instruction CV_MAXU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MAXU_H", "Instruction CV_MAXU_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MAXU_H", "Instruction CV_MAXU_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if (reg_file[rs1][(i*16)+:16] > reg_file[rs2][(i*16)+:16]) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3724,7 +3774,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MAXU_B", "Instruction CV_MAXU_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MAXU_B", "Instruction CV_MAXU_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if (reg_file[rs1][(i*8)+:8] > reg_file[rs2][(i*8)+:8]) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3738,14 +3788,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MAXU_SC : begin
 
-                `uvm_info("CV_MAXU_SC", "Instruction CV_MAXU_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_MAXU_SC", "Instruction CV_MAXU_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MAXU_SC_H", "Instruction CV_MAXU_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MAXU_SC_H", "Instruction CV_MAXU_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if (reg_file[rs1][(i*16)+:16] > reg_file[rs2][15:0]) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3754,7 +3804,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MAXU_SC_B", "Instruction CV_MAXU_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MAXU_SC_B", "Instruction CV_MAXU_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if (reg_file[rs1][(i*8)+:8] > reg_file[rs2][7:0]) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3768,7 +3818,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MAXU_SCI : begin
 
-                `uvm_info("CV_MAXU_SCI", "Instruction CV_MAXU_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_MAXU_SCI", "Instruction CV_MAXU_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -3776,7 +3826,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MAXU_SCI_H", "Instruction CV_MAXU_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MAXU_SCI_H", "Instruction CV_MAXU_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if (reg_file[rs1][(i*16)+:16] > imm6_ext[15:0]) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3785,7 +3835,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MAXU_SCI_B", "Instruction CV_MAXU_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MAXU_SCI_B", "Instruction CV_MAXU_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if (reg_file[rs1][(i*8)+:8] > imm6_ext[7:0]) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3799,7 +3849,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MAXU_W : begin
 
-                `uvm_info("CV_MAXU_W", "Instruction CV_MAXU_W detected successfully", UVM_LOW)
+                `uvm_info("CV_MAXU_W", "Instruction CV_MAXU_W detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3815,14 +3865,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MIN : begin
 
-                `uvm_info("CV_MIN", "Instruction CV_MIN detected successfully", UVM_LOW)
+                `uvm_info("CV_MIN", "Instruction CV_MIN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MIN_H", "Instruction CV_MIN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MIN_H", "Instruction CV_MIN_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if ($signed(reg_file[rs1][(i*16)+:16]) < $signed(reg_file[rs2][(i*16)+:16])) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3831,7 +3881,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MIN_B", "Instruction CV_MIN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MIN_B", "Instruction CV_MIN_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if ($signed(reg_file[rs1][(i*8)+:8]) < $signed(reg_file[rs2][(i*8)+:8])) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3845,14 +3895,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MIN_SC : begin
 
-                `uvm_info("CV_MIN_SC", "Instruction CV_MIN_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_MIN_SC", "Instruction CV_MIN_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MIN_SC_H", "Instruction CV_MIN_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MIN_SC_H", "Instruction CV_MIN_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if ($signed(reg_file[rs1][(i*16)+:16]) < $signed(reg_file[rs2][15:0])) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3861,7 +3911,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MIN_SC_B", "Instruction CV_MIN_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MIN_SC_B", "Instruction CV_MIN_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if ($signed(reg_file[rs1][(i*8)+:8]) < $signed(reg_file[rs2][7:0])) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3875,7 +3925,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MIN_SCI : begin
 
-                `uvm_info("CV_MIN_SCI", "Instruction CV_MIN_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_MIN_SCI", "Instruction CV_MIN_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -3883,7 +3933,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MIN_SCI_H", "Instruction CV_MIN_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MIN_SCI_H", "Instruction CV_MIN_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if ($signed(reg_file[rs1][(i*16)+:16]) < $signed(imm6_ext[15:0])) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3892,7 +3942,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MIN_SCI_B", "Instruction CV_MIN_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MIN_SCI_B", "Instruction CV_MIN_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if ($signed(reg_file[rs1][(i*8)+:8]) < $signed(imm6_ext[7:0])) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3906,7 +3956,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MIN_W : begin
 
-                `uvm_info("CV_MIN_W", "Instruction CV_MIN_W detected successfully", UVM_LOW)
+                `uvm_info("CV_MIN_W", "Instruction CV_MIN_W detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -3922,14 +3972,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MINU : begin
 
-                `uvm_info("CV_MINU", "Instruction CV_MINU detected successfully", UVM_LOW)
+                `uvm_info("CV_MINU", "Instruction CV_MINU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MINU_H", "Instruction CV_MINU_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MINU_H", "Instruction CV_MINU_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if (reg_file[rs1][(i*16)+:16] < reg_file[rs2][(i*16)+:16]) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3938,7 +3988,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MINU_B", "Instruction CV_MINU_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MINU_B", "Instruction CV_MINU_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if (reg_file[rs1][(i*8)+:8] < reg_file[rs2][(i*8)+:8]) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3952,14 +4002,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MINU_SC : begin
 
-                `uvm_info("CV_MINU_SC", "Instruction CV_MINU_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_MINU_SC", "Instruction CV_MINU_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MINU_SC_H", "Instruction CV_MINU_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MINU_SC_H", "Instruction CV_MINU_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if (reg_file[rs1][(i*16)+:16] < reg_file[rs2][15:0]) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3968,7 +4018,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MINU_SC_B", "Instruction CV_MINU_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MINU_SC_B", "Instruction CV_MINU_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if (reg_file[rs1][(i*8)+:8] < reg_file[rs2][7:0]) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -3982,7 +4032,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MINU_SCI : begin
 
-                `uvm_info("CV_MINU_SCI", "Instruction CV_MINU_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_MINU_SCI", "Instruction CV_MINU_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -3990,7 +4040,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MINU_SCI_H", "Instruction CV_MINU_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MINU_SCI_H", "Instruction CV_MINU_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						if (reg_file[rs1][(i*16)+:16] < imm6_ext[15:0]) begin
 							reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16];
@@ -3999,7 +4049,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 						end
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MINU_SCI_B", "Instruction CV_MINU_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MINU_SCI_B", "Instruction CV_MINU_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						if (reg_file[rs1][(i*8)+:8] < imm6_ext[7:0]) begin
 							reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8];
@@ -4013,7 +4063,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MINU_W : begin
 
-                `uvm_info("CV_MINU_W", "Instruction CV_MINU_W detected successfully", UVM_LOW)
+                `uvm_info("CV_MINU_W", "Instruction CV_MINU_W detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4029,7 +4079,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MSU : begin
 
-                `uvm_info("CV_MSU", "Instruction CV_MSU detected successfully", UVM_LOW)
+                `uvm_info("CV_MSU", "Instruction CV_MSU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4041,7 +4091,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MULHHSN : begin
 
-                `uvm_info("CV_MULHHSN", "Instruction CV_MULHHSN detected successfully", UVM_LOW)
+                `uvm_info("CV_MULHHSN", "Instruction CV_MULHHSN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4049,10 +4099,10 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MULHHSN_H", "Instruction CV_MULHHSN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MULHHSN_H", "Instruction CV_MULHHSN_H detected successfully", UVM_MEDIUM);
 					reg_file[rd] = $signed({{16{reg_file[rs1][31]}}, reg_file[rs1][31:16]} * {{16{reg_file[rs2][31]}}, reg_file[rs2][31:16]}) >>> ls3;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MULHHSN_B", "Instruction CV_MULHHSN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MULHHSN_B", "Instruction CV_MULHHSN_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_mac_mul_prov = $signed({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]});
 						reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
@@ -4063,7 +4113,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MULHHSRN : begin
 
-                `uvm_info("CV_MULHHSRN", "Instruction CV_MULHHSRN detected successfully", UVM_LOW)
+                `uvm_info("CV_MULHHSRN", "Instruction CV_MULHHSRN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4071,14 +4121,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MULHHSRN_H", "Instruction CV_MULHHSRN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MULHHSRN_H", "Instruction CV_MULHHSRN_H detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						reg_file[rd] = $signed(({{16{reg_file[rs1][31]}}, reg_file[rs1][31:16]} * {{16{reg_file[rs2][31]}}, reg_file[rs2][31:16]}) + (1 << (ls3-1))) >>> ls3;
 					end else begin
 						reg_file[rd] = $signed({{16{reg_file[rs1][31]}}, reg_file[rs1][31:16]} * {{16{reg_file[rs2][31]}}, reg_file[rs2][31:16]}) >>> ls3;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MULHHSRN_B", "Instruction CV_MULHHSRN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MULHHSRN_B", "Instruction CV_MULHHSRN_B detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][((i+2)*8)+7]}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{reg_file[rs2][((i+2)*8)+7]}}, reg_file[rs2][((i+2)*8)+:8]}) + (1 << (ls3-1)));
@@ -4096,7 +4146,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MULHHUN : begin
 
-                `uvm_info("CV_MULHHUN", "Instruction CV_MULHHUN detected successfully", UVM_LOW)
+                `uvm_info("CV_MULHHUN", "Instruction CV_MULHHUN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4104,10 +4154,10 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MULHHUN_H", "Instruction CV_MULHHUN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MULHHUN_H", "Instruction CV_MULHHUN_H detected successfully", UVM_MEDIUM);
 					reg_file[rd] = ({{16{1'b0}}, reg_file[rs1][31:16]} * {{16{1'b0}}, reg_file[rs2][31:16]}) >> ls3;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MULHHUN_B", "Instruction CV_MULHHUN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MULHHUN_B", "Instruction CV_MULHHUN_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_mac_mul_prov = ({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]});
 						reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
@@ -4118,7 +4168,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MULHHURN : begin
 
-                `uvm_info("CV_MULHHURN", "Instruction CV_MULHHURN detected successfully", UVM_LOW)
+                `uvm_info("CV_MULHHURN", "Instruction CV_MULHHURN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4126,14 +4176,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MULHHURN_H", "Instruction CV_MULHHURN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MULHHURN_H", "Instruction CV_MULHHURN_H detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][31:16]} * {{16{1'b0}}, reg_file[rs2][31:16]}) + (1 << (ls3-1))) >> ls3;
 					end else begin
 						reg_file[rd] = ({{16{1'b0}}, reg_file[rs1][31:16]} * {{16{1'b0}}, reg_file[rs2][31:16]}) >> ls3;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MULHHURN_B", "Instruction CV_MULHHURN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MULHHURN_B", "Instruction CV_MULHHURN_B detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][((i+2)*8)+:8]} * {{24{1'b0}}, reg_file[rs2][((i+2)*8)+:8]}) + (1 << (ls3-1)));
@@ -4151,7 +4201,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MULSN : begin
 
-                `uvm_info("CV_MULSN", "Instruction CV_MULSN detected successfully", UVM_LOW)
+                `uvm_info("CV_MULSN", "Instruction CV_MULSN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4159,10 +4209,10 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MULSN_H", "Instruction CV_MULSN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MULSN_H", "Instruction CV_MULSN_H detected successfully", UVM_MEDIUM);
 					reg_file[rd] = $signed({{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]}) >>> ls3;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MULSN_B", "Instruction CV_MULSN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MULSN_B", "Instruction CV_MULSN_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_mac_mul_prov = $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
 						reg_file[rd][(i*16)+:16] = $signed(reg_mac_mul_prov) >>> ls3;
@@ -4173,7 +4223,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MULSRN : begin
 
-                `uvm_info("CV_MULSRN", "Instruction CV_MULSRN detected successfully", UVM_LOW)
+                `uvm_info("CV_MULSRN", "Instruction CV_MULSRN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4181,14 +4231,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MULSRN_H", "Instruction CV_MULSRN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MULSRN_H", "Instruction CV_MULSRN_H detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						reg_file[rd] = $signed(({{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]}) + (1 << (ls3-1))) >>> ls3;
 					end else begin
 						reg_file[rd] = $signed({{16{reg_file[rs1][15]}}, reg_file[rs1][15:0]} * {{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]}) >>> ls3;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MULSRN_B", "Instruction CV_MULSRN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MULSRN_B", "Instruction CV_MULSRN_B detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_mac_mul_prov = $signed(({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]}) + (1 << (ls3-1)));
@@ -4206,7 +4256,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MULUN : begin
 
-                `uvm_info("CV_MULUN", "Instruction CV_MULUN detected successfully", UVM_LOW)
+                `uvm_info("CV_MULUN", "Instruction CV_MULUN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4214,10 +4264,10 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MULUN_H", "Instruction CV_MULUN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MULUN_H", "Instruction CV_MULUN_H detected successfully", UVM_MEDIUM);
 					reg_file[rd] = ({{16{1'b0}}, reg_file[rs1][15:0]} * {{16{1'b0}}, reg_file[rs2][15:0]}) >> ls3;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MULUN_B", "Instruction CV_MULUN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MULUN_B", "Instruction CV_MULUN_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_mac_mul_prov = ({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]});
 						reg_file[rd][(i*16)+:16] = reg_mac_mul_prov >> ls3;
@@ -4228,7 +4278,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_MULURN : begin
 
-                `uvm_info("CV_MULURN", "Instruction CV_MULURN detected successfully", UVM_LOW)
+                `uvm_info("CV_MULURN", "Instruction CV_MULURN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4236,14 +4286,14 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_MULURN_H", "Instruction CV_MULURN_H detected successfully", UVM_LOW);
+					`uvm_info("CV_MULURN_H", "Instruction CV_MULURN_H detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						reg_file[rd] = (({{16{1'b0}}, reg_file[rs1][15:0]} * {{16{1'b0}}, reg_file[rs2][15:0]}) + (1 << (ls3-1))) >> ls3;
 					end else begin
 						reg_file[rd] = ({{16{1'b0}}, reg_file[rs1][15:0]} * {{16{1'b0}}, reg_file[rs2][15:0]}) >> ls3;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_MULURN_B", "Instruction CV_MULURN_B detected successfully", UVM_LOW);
+					`uvm_info("CV_MULURN_B", "Instruction CV_MULURN_B detected successfully", UVM_MEDIUM);
 					if (ls3 != 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_mac_mul_prov = (({{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]}) + (1 << (ls3-1)));
@@ -4261,19 +4311,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_OR : begin
 
-                `uvm_info("CV_OR", "Instruction CV_OR detected successfully", UVM_LOW)
+                `uvm_info("CV_OR", "Instruction CV_OR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_OR_H", "Instruction CV_OR_H detected successfully", UVM_LOW);
+					`uvm_info("CV_OR_H", "Instruction CV_OR_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] | reg_file[rs2][(i*16)+:16];
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_OR_B", "Instruction CV_OR_B detected successfully", UVM_LOW);
+					`uvm_info("CV_OR_B", "Instruction CV_OR_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] | reg_file[rs2][(i*8)+:8];
 					end
@@ -4283,19 +4333,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_OR_SC : begin
 
-                `uvm_info("CV_OR_SC", "Instruction CV_OR_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_OR_SC", "Instruction CV_OR_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_OR_SC_H", "Instruction CV_OR_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_OR_SC_H", "Instruction CV_OR_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] | reg_file[rs2][15:0];
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_OR_SC_B", "Instruction CV_OR_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_OR_SC_B", "Instruction CV_OR_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] | reg_file[rs2][7:0];
 					end
@@ -4305,7 +4355,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_OR_SCI : begin
 
-                `uvm_info("CV_OR_SCI", "Instruction CV_OR_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_OR_SCI", "Instruction CV_OR_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -4313,12 +4363,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_OR_SCI_H", "Instruction CV_OR_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_OR_SCI_H", "Instruction CV_OR_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] | imm6_ext[15:0];
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_OR_SCI_B", "Instruction CV_OR_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_OR_SCI_B", "Instruction CV_OR_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] | imm6_ext[7:0];
 					end
@@ -4328,7 +4378,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SB_RIPI : begin
 
-                `uvm_info("CV_SB_RIPI", "Instruction CV_SB_RIPI detected successfully", UVM_LOW)
+                `uvm_info("CV_SB_RIPI", "Instruction CV_SB_RIPI detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 imm12hi = instr[31:25];
@@ -4343,7 +4393,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SB_RR : begin
 
-                `uvm_info("CV_SB_RR", "Instruction CV_SB_RR detected successfully", UVM_LOW)
+                `uvm_info("CV_SB_RR", "Instruction CV_SB_RR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4356,7 +4406,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SB_RRPI : begin
 
-                `uvm_info("CV_SB_RRPI", "Instruction CV_SB_RRPI detected successfully", UVM_LOW)
+                `uvm_info("CV_SB_RRPI", "Instruction CV_SB_RRPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4370,7 +4420,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SDOTSP : begin
 
-                `uvm_info("CV_SDOTSP", "Instruction CV_SDOTSP detected successfully", UVM_LOW)
+                `uvm_info("CV_SDOTSP", "Instruction CV_SDOTSP detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4378,19 +4428,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_result = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SDOTSP_H", "Instruction CV_SDOTSP_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTSP_H", "Instruction CV_SDOTSP_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{reg_file[rs2][(i*16)+15]}}, reg_file[rs2][(i*16)+:16]});
 					end
 					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SDOTSP_B", "Instruction CV_SDOTSP_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTSP_B", "Instruction CV_SDOTSP_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_result += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
 					end
 					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_SDOTSP_MX", "Instruction CV_SDOTSP_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTSP_MX", "Instruction CV_SDOTSP_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
@@ -4409,7 +4459,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SDOTSP_SC : begin
 
-                `uvm_info("CV_SDOTSP_SC", "Instruction CV_SDOTSP_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_SDOTSP_SC", "Instruction CV_SDOTSP_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4417,19 +4467,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_result = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SDOTSP_SC_H", "Instruction CV_SDOTSP_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTSP_SC_H", "Instruction CV_SDOTSP_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]});
 					end
 					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SDOTSP_SC_B", "Instruction CV_SDOTSP_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTSP_SC_B", "Instruction CV_SDOTSP_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_result += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
 					end
 					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_SDOTSP_SC_MX", "Instruction CV_SDOTSP_SC_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTSP_SC_MX", "Instruction CV_SDOTSP_SC_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
@@ -4448,7 +4498,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SDOTSP_SCI : begin
 
-                `uvm_info("CV_SDOTSP_SCI", "Instruction CV_SDOTSP_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_SDOTSP_SCI", "Instruction CV_SDOTSP_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -4457,19 +4507,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				reg_result = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SDOTSP_SCI_H", "Instruction CV_SDOTSP_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTSP_SCI_H", "Instruction CV_SDOTSP_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{16{imm6_ext[15]}}, imm6_ext[15:0]});
 					end
 					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SDOTSP_SCI_B", "Instruction CV_SDOTSP_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTSP_SCI_B", "Instruction CV_SDOTSP_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_result += $signed({{24{reg_file[rs1][(i*8)+7]}}, reg_file[rs1][(i*8)+:8]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
 					end
 					reg_file[rd] = $signed(reg_file[rd]) + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_SDOTSP_SCI_MX", "Instruction CV_SDOTSP_SCI_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTSP_SCI_MX", "Instruction CV_SDOTSP_SCI_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_result += $signed({{16{reg_file[rs1][(i*16)+15]}}, reg_file[rs1][(i*16)+:16]}) * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
@@ -4488,7 +4538,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SDOTUP : begin
 
-                `uvm_info("CV_SDOTUP", "Instruction CV_SDOTUP detected successfully", UVM_LOW)
+                `uvm_info("CV_SDOTUP", "Instruction CV_SDOTUP detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4496,19 +4546,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_result = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SDOTUP_H", "Instruction CV_SDOTUP_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUP_H", "Instruction CV_SDOTUP_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, reg_file[rs2][(i*16)+:16]};
 					end
 					reg_file[rd] = reg_file[rd] + reg_result;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SDOTUP_B", "Instruction CV_SDOTUP_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUP_B", "Instruction CV_SDOTUP_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
 					end
 					reg_file[rd] = reg_file[rd] + reg_result;
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_SDOTUP_MX", "Instruction CV_SDOTUP_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUP_MX", "Instruction CV_SDOTUP_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][(i*8)+:8]};
@@ -4527,7 +4577,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SDOTUP_SC : begin
 
-                `uvm_info("CV_SDOTUP_SC", "Instruction CV_SDOTUP_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_SDOTUP_SC", "Instruction CV_SDOTUP_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4535,19 +4585,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_result = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SDOTUP_SC_H", "Instruction CV_SDOTUP_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUP_SC_H", "Instruction CV_SDOTUP_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, reg_file[rs2][15:0]};
 					end
 					reg_file[rd] = reg_file[rd] + reg_result;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SDOTUP_SC_B", "Instruction CV_SDOTUP_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUP_SC_B", "Instruction CV_SDOTUP_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, reg_file[rs2][7:0]};
 					end
 					reg_file[rd] = reg_file[rd] + reg_result;
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_SDOTUP_SC_MX", "Instruction CV_SDOTUP_SC_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUP_SC_MX", "Instruction CV_SDOTUP_SC_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, reg_file[rs2][7:0]};
@@ -4566,7 +4616,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SDOTUP_SCI : begin
 
-                `uvm_info("CV_SDOTUP_SCI", "Instruction CV_SDOTUP_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_SDOTUP_SCI", "Instruction CV_SDOTUP_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -4575,19 +4625,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				reg_result = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SDOTUP_SCI_H", "Instruction CV_SDOTUP_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUP_SCI_H", "Instruction CV_SDOTUP_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{16{1'b0}}, imm6_ext[15:0]};
 					end
 					reg_file[rd] = reg_file[rd] + reg_result;
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SDOTUP_SCI_B", "Instruction CV_SDOTUP_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUP_SCI_B", "Instruction CV_SDOTUP_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * {{24{1'b0}}, imm6_ext[7:0]};
 					end
 					reg_file[rd] = reg_file[rd] + reg_result;
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_SDOTUP_SCI_MX", "Instruction CV_SDOTUP_SCI_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUP_SCI_MX", "Instruction CV_SDOTUP_SCI_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{1'b0}}, imm6_ext[7:0]};
@@ -4606,7 +4656,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SDOTUSP : begin
 
-                `uvm_info("CV_SDOTUSP", "Instruction CV_SDOTUSP detected successfully", UVM_LOW)
+                `uvm_info("CV_SDOTUSP", "Instruction CV_SDOTUSP detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4614,19 +4664,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_result = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SDOTUSP_H", "Instruction CV_SDOTUSP_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUSP_H", "Instruction CV_SDOTUSP_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * $signed({{16{reg_file[rs2][(i*16)+15]}}, reg_file[rs2][(i*16)+:16]});
 					end
 					reg_file[rd] = reg_file[rd] + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SDOTUSP_B", "Instruction CV_SDOTUSP_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUSP_B", "Instruction CV_SDOTUSP_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * $signed({{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]});
 					end
 					reg_file[rd] = reg_file[rd] + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_SDOTUSP_MX", "Instruction CV_SDOTUSP_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUSP_MX", "Instruction CV_SDOTUSP_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][(i*8)+7]}}, reg_file[rs2][(i*8)+:8]};
@@ -4645,7 +4695,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SDOTUSP_SC : begin
 
-                `uvm_info("CV_SDOTUSP_SC", "Instruction CV_SDOTUSP_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_SDOTUSP_SC", "Instruction CV_SDOTUSP_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4653,19 +4703,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				reg_result = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SDOTUSP_SC_H", "Instruction CV_SDOTUSP_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUSP_SC_H", "Instruction CV_SDOTUSP_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * $signed({{16{reg_file[rs2][15]}}, reg_file[rs2][15:0]});
 					end
 					reg_file[rd] = reg_file[rd] + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SDOTUSP_SC_B", "Instruction CV_SDOTUSP_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUSP_SC_B", "Instruction CV_SDOTUSP_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * $signed({{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]});
 					end
 					reg_file[rd] = reg_file[rd] + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_SDOTUSP_SC_MX", "Instruction CV_SDOTUSP_SC_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUSP_SC_MX", "Instruction CV_SDOTUSP_SC_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{reg_file[rs2][7]}}, reg_file[rs2][7:0]};
@@ -4684,7 +4734,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SDOTUSP_SCI : begin
 
-                `uvm_info("CV_SDOTUSP_SCI", "Instruction CV_SDOTUSP_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_SDOTUSP_SCI", "Instruction CV_SDOTUSP_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -4693,19 +4743,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				reg_result = 0;
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SDOTUSP_SCI_H", "Instruction CV_SDOTUSP_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUSP_SCI_H", "Instruction CV_SDOTUSP_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_result += {{16{1'b0}}, reg_file[rs1][(i*8)+:16]} * $signed({{16{imm6_ext[15]}}, imm6_ext[15:0]});
 					end
 					reg_file[rd] = reg_file[rd] + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SDOTUSP_SCI_B", "Instruction CV_SDOTUSP_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUSP_SCI_B", "Instruction CV_SDOTUSP_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_result += {{24{1'b0}}, reg_file[rs1][(i*8)+:8]} * $signed({{24{imm6_ext[7]}}, imm6_ext[7:0]});
 					end
 					reg_file[rd] = reg_file[rd] + $signed(reg_result);
 				end else if (csr_reg_file[12'h0A0] == 6) begin
-					`uvm_info("CV_SDOTUSP_SCI_MX", "Instruction CV_SDOTUSP_SCI_MX detected successfully", UVM_LOW);
+					`uvm_info("CV_SDOTUSP_SCI_MX", "Instruction CV_SDOTUSP_SCI_MX detected successfully", UVM_MEDIUM);
 					if (iteration_mx == 0) begin
 						for (int i = 0; i < 2; i++) begin
 							reg_result += {{16{1'b0}}, reg_file[rs1][(i*16)+:16]} * {{24{imm6_ext[7]}}, imm6_ext[7:0]};
@@ -4722,9 +4772,40 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_SETUP : begin
+
+                `uvm_info("CV_SETUP", "Instruction CV_SETUP detected successfully", UVM_MEDIUM)
+                rs1 = instr[19:15];
+                imm12 = instr[31:20];
+                L = instr[7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{1'b0}}, imm12};
+				lpstart[L] = pc + 4;
+				lpend[L] = pc + (imm12_ext << 2);
+				lpcount[L] = reg_file[rs1];
+
+            end
+
+            CV_SETUPI : begin
+
+                `uvm_info("CV_SETUPI", "Instruction CV_SETUPI detected successfully", UVM_MEDIUM)
+                imm12 = instr[31:20];
+                zimm5 = instr[19:15];
+                L = instr[7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{1'b0}}, imm12};
+				imm6_ext = {{26{1'b0}}, zimm5};
+				lpstart[L] = pc + 4;
+				lpend[L] = pc + (imm6_ext << 2);
+				lpcount[L] = imm12_ext;
+
+            end
+
             CV_SH_RIPI : begin
 
-                `uvm_info("CV_SH_RIPI", "Instruction CV_SH_RIPI detected successfully", UVM_LOW)
+                `uvm_info("CV_SH_RIPI", "Instruction CV_SH_RIPI detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 imm12hi = instr[31:25];
@@ -4740,7 +4821,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SH_RR : begin
 
-                `uvm_info("CV_SH_RR", "Instruction CV_SH_RR detected successfully", UVM_LOW)
+                `uvm_info("CV_SH_RR", "Instruction CV_SH_RR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4754,7 +4835,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SH_RRPI : begin
 
-                `uvm_info("CV_SH_RRPI", "Instruction CV_SH_RRPI detected successfully", UVM_LOW)
+                `uvm_info("CV_SH_RRPI", "Instruction CV_SH_RRPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4769,7 +4850,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SLE : begin
 
-                `uvm_info("CV_SLE", "Instruction CV_SLE detected successfully", UVM_LOW)
+                `uvm_info("CV_SLE", "Instruction CV_SLE detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4785,7 +4866,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SLEU : begin
 
-                `uvm_info("CV_SLEU", "Instruction CV_SLEU detected successfully", UVM_LOW)
+                `uvm_info("CV_SLEU", "Instruction CV_SLEU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -4801,19 +4882,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SLL : begin
 
-                `uvm_info("CV_SLL", "Instruction CV_SLL detected successfully", UVM_LOW)
+                `uvm_info("CV_SLL", "Instruction CV_SLL detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SLL_H", "Instruction CV_SLL_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SLL_H", "Instruction CV_SLL_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] << (reg_file[rs2][(i*16)+:16] & 16'h000F);
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SLL_B", "Instruction CV_SLL_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SLL_B", "Instruction CV_SLL_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] << (reg_file[rs2][(i*8)+:8] & 8'h07);
 					end
@@ -4823,19 +4904,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SLL_SC : begin
 
-                `uvm_info("CV_SLL_SC", "Instruction CV_SLL_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_SLL_SC", "Instruction CV_SLL_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SLL_SC_H", "Instruction CV_SLL_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SLL_SC_H", "Instruction CV_SLL_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] << (reg_file[rs2][15:0] & 16'h000F);
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SLL_SC_B", "Instruction CV_SLL_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SLL_SC_B", "Instruction CV_SLL_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] << (reg_file[rs2][7:0] & 8'h07);
 					end
@@ -4845,7 +4926,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SLL_SCI : begin
 
-                `uvm_info("CV_SLL_SCI", "Instruction CV_SLL_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_SLL_SCI", "Instruction CV_SLL_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -4853,12 +4934,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SLL_SCI_H", "Instruction CV_SLL_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SLL_SCI_H", "Instruction CV_SLL_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] << (imm6_ext[15:0] & 16'h000F);
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SLL_SCI_B", "Instruction CV_SLL_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SLL_SCI_B", "Instruction CV_SLL_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] << (imm6_ext[7:0] & 8'h07);
 					end
@@ -4868,19 +4949,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SRA : begin
 
-                `uvm_info("CV_SRA", "Instruction CV_SRA detected successfully", UVM_LOW)
+                `uvm_info("CV_SRA", "Instruction CV_SRA detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SRA_H", "Instruction CV_SRA_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SRA_H", "Instruction CV_SRA_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = $signed(reg_file[rs1][(i*16)+:16]) >>> (reg_file[rs2][(i*16)+:16] & 16'h000F);
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SRA_B", "Instruction CV_SRA_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SRA_B", "Instruction CV_SRA_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = $signed(reg_file[rs1][(i*8)+:8]) >>> (reg_file[rs2][(i*8)+:8] & 8'h07);
 					end
@@ -4890,19 +4971,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SRA_SC : begin
 
-                `uvm_info("CV_SRA_SC", "Instruction CV_SRA_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_SRA_SC", "Instruction CV_SRA_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SRA_SC_H", "Instruction CV_SRA_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SRA_SC_H", "Instruction CV_SRA_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = $signed(reg_file[rs1][(i*16)+:16]) >>> (reg_file[rs2][15:0] & 16'h000F);
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SRA_SC_B", "Instruction CV_SRA_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SRA_SC_B", "Instruction CV_SRA_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = $signed(reg_file[rs1][(i*8)+:8]) >>> (reg_file[rs2][7:0] & 8'h07);
 					end
@@ -4912,7 +4993,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SRA_SCI : begin
 
-                `uvm_info("CV_SRA_SCI", "Instruction CV_SRA_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_SRA_SCI", "Instruction CV_SRA_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -4920,12 +5001,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SRA_SCI_H", "Instruction CV_SRA_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SRA_SCI_H", "Instruction CV_SRA_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = $signed(reg_file[rs1][(i*16)+:16]) >>> (imm6_ext[15:0] & 16'h000F);
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SRA_SCI_B", "Instruction CV_SRA_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SRA_SCI_B", "Instruction CV_SRA_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = $signed(reg_file[rs1][(i*8)+:8]) >>> (imm6_ext[7:0] & 8'h07);
 					end
@@ -4935,19 +5016,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SRL : begin
 
-                `uvm_info("CV_SRL", "Instruction CV_SRL detected successfully", UVM_LOW)
+                `uvm_info("CV_SRL", "Instruction CV_SRL detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SRL_H", "Instruction CV_SRL_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SRL_H", "Instruction CV_SRL_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] >> (reg_file[rs2][(i*16)+:16] & 16'h000F);
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SRL_B", "Instruction CV_SRL_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SRL_B", "Instruction CV_SRL_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] >> (reg_file[rs2][(i*8)+:8] & 8'h07);
 					end
@@ -4957,19 +5038,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SRL_SC : begin
 
-                `uvm_info("CV_SRL_SC", "Instruction CV_SRL_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_SRL_SC", "Instruction CV_SRL_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SRL_SC_H", "Instruction CV_SRL_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SRL_SC_H", "Instruction CV_SRL_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] >> (reg_file[rs2][15:0] & 16'h000F);
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SRL_SC_B", "Instruction CV_SRL_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SRL_SC_B", "Instruction CV_SRL_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] >> (reg_file[rs2][7:0] & 8'h07);
 					end
@@ -4979,7 +5060,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SRL_SCI : begin
 
-                `uvm_info("CV_SRL_SCI", "Instruction CV_SRL_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_SRL_SCI", "Instruction CV_SRL_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -4987,12 +5068,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {26'b0, imm6[4], imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SRL_SCI_H", "Instruction CV_SRL_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SRL_SCI_H", "Instruction CV_SRL_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] >> (imm6_ext[15:0] & 16'h000F);
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SRL_SCI_B", "Instruction CV_SRL_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SRL_SCI_B", "Instruction CV_SRL_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] >> (imm6_ext[7:0] & 8'h07);
 					end
@@ -5000,21 +5081,44 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             end
 
+            CV_START : begin
+
+                `uvm_info("CV_START", "Instruction CV_START detected successfully", UVM_MEDIUM)
+                rs1 = instr[19:15];
+                L = instr[7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				lpstart[L] = reg_file[rs1];
+
+            end
+
+            CV_STARTI : begin
+
+                `uvm_info("CV_STARTI", "Instruction CV_STARTI detected successfully", UVM_MEDIUM)
+                imm12 = instr[31:20];
+                L = instr[7];
+                reg_rs1_prev = reg_file[rs1];
+				reg_rs2_prev = reg_file[rs2];
+				imm12_ext = {{20{1'b0}}, imm12};
+				lpstart[L] = pc + (imm12_ext << 2);
+
+            end
+
             CV_SUB : begin
 
-                `uvm_info("CV_SUB", "Instruction CV_SUB detected successfully", UVM_LOW)
+                `uvm_info("CV_SUB", "Instruction CV_SUB detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SUB_H", "Instruction CV_SUB_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SUB_H", "Instruction CV_SUB_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] - reg_file[rs2][(i*16)+:16]) & 16'hFFFF;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SUB_B", "Instruction CV_SUB_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SUB_B", "Instruction CV_SUB_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] - reg_file[rs2][(i*8)+:8]) & 8'hFF;
 					end
@@ -5024,7 +5128,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUBN : begin
 
-                `uvm_info("CV_SUBN", "Instruction CV_SUBN detected successfully", UVM_LOW)
+                `uvm_info("CV_SUBN", "Instruction CV_SUBN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5037,7 +5141,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUBNR : begin
 
-                `uvm_info("CV_SUBNR", "Instruction CV_SUBNR detected successfully", UVM_LOW)
+                `uvm_info("CV_SUBNR", "Instruction CV_SUBNR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5049,7 +5153,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUBRN : begin
 
-                `uvm_info("CV_SUBRN", "Instruction CV_SUBRN detected successfully", UVM_LOW)
+                `uvm_info("CV_SUBRN", "Instruction CV_SUBRN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5066,7 +5170,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUBRNR : begin
 
-                `uvm_info("CV_SUBRNR", "Instruction CV_SUBRNR detected successfully", UVM_LOW)
+                `uvm_info("CV_SUBRNR", "Instruction CV_SUBRNR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5082,19 +5186,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUB_SC : begin
 
-                `uvm_info("CV_SUB_SC", "Instruction CV_SUB_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_SUB_SC", "Instruction CV_SUB_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SUB_SC_H", "Instruction CV_SUB_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SUB_SC_H", "Instruction CV_SUB_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] - reg_file[rs2][15:0]) & 16'hFFFF;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SUB_SC_B", "Instruction CV_SUB_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SUB_SC_B", "Instruction CV_SUB_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] - reg_file[rs2][7:0]) & 8'hFF;
 					end
@@ -5104,7 +5208,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUB_SCI : begin
 
-                `uvm_info("CV_SUB_SCI", "Instruction CV_SUB_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_SUB_SCI", "Instruction CV_SUB_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -5112,12 +5216,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_SUB_SCI_H", "Instruction CV_SUB_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_SUB_SCI_H", "Instruction CV_SUB_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = (reg_file[rs1][(i*16)+:16] - imm6_ext[15:0]) & 16'hFFFF;
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_SUB_SCI__B", "Instruction CV_SUB_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_SUB_SCI__B", "Instruction CV_SUB_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = (reg_file[rs1][(i*8)+:8] - imm6_ext[7:0]) & 8'hFF;
 					end
@@ -5127,7 +5231,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUBUN : begin
 
-                `uvm_info("CV_SUBUN", "Instruction CV_SUBUN detected successfully", UVM_LOW)
+                `uvm_info("CV_SUBUN", "Instruction CV_SUBUN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5140,7 +5244,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUBUNR : begin
 
-                `uvm_info("CV_SUBUNR", "Instruction CV_SUBUNR detected successfully", UVM_LOW)
+                `uvm_info("CV_SUBUNR", "Instruction CV_SUBUNR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5152,7 +5256,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUBURN : begin
 
-                `uvm_info("CV_SUBURN", "Instruction CV_SUBURN detected successfully", UVM_LOW)
+                `uvm_info("CV_SUBURN", "Instruction CV_SUBURN detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5169,7 +5273,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SUBURNR : begin
 
-                `uvm_info("CV_SUBURNR", "Instruction CV_SUBURNR detected successfully", UVM_LOW)
+                `uvm_info("CV_SUBURNR", "Instruction CV_SUBURNR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5185,7 +5289,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SW_RIPI : begin
 
-                `uvm_info("CV_SW_RIPI", "Instruction CV_SW_RIPI detected successfully", UVM_LOW)
+                `uvm_info("CV_SW_RIPI", "Instruction CV_SW_RIPI detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 imm12hi = instr[31:25];
@@ -5203,7 +5307,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SW_RR : begin
 
-                `uvm_info("CV_SW_RR", "Instruction CV_SW_RR detected successfully", UVM_LOW)
+                `uvm_info("CV_SW_RR", "Instruction CV_SW_RR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5219,7 +5323,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_SW_RRPI : begin
 
-                `uvm_info("CV_SW_RRPI", "Instruction CV_SW_RRPI detected successfully", UVM_LOW)
+                `uvm_info("CV_SW_RRPI", "Instruction CV_SW_RRPI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5236,19 +5340,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_XOR : begin
 
-                `uvm_info("CV_XOR", "Instruction CV_XOR detected successfully", UVM_LOW)
+                `uvm_info("CV_XOR", "Instruction CV_XOR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_XOR_H", "Instruction CV_XOR_H detected successfully", UVM_LOW);
+					`uvm_info("CV_XOR_H", "Instruction CV_XOR_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] ^ reg_file[rs2][(i*16)+:16];
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_XOR_B", "Instruction CV_XOR_B detected successfully", UVM_LOW);
+					`uvm_info("CV_XOR_B", "Instruction CV_XOR_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] ^ reg_file[rs2][(i*8)+:8];
 					end
@@ -5258,19 +5362,19 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_XOR_SC : begin
 
-                `uvm_info("CV_XOR_SC", "Instruction CV_XOR_SC detected successfully", UVM_LOW)
+                `uvm_info("CV_XOR_SC", "Instruction CV_XOR_SC detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 reg_rs1_prev = reg_file[rs1];
 				reg_rs2_prev = reg_file[rs2];
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_XOR_SC_H", "Instruction CV_XOR_SC_H detected successfully", UVM_LOW);
+					`uvm_info("CV_XOR_SC_H", "Instruction CV_XOR_SC_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] ^ reg_file[rs2][15:0];
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_XOR_SC_B", "Instruction CV_XOR_SC_B detected successfully", UVM_LOW);
+					`uvm_info("CV_XOR_SC_B", "Instruction CV_XOR_SC_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] ^ reg_file[rs2][7:0];
 					end
@@ -5280,7 +5384,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             CV_XOR_SCI : begin
 
-                `uvm_info("CV_XOR_SCI", "Instruction CV_XOR_SCI detected successfully", UVM_LOW)
+                `uvm_info("CV_XOR_SCI", "Instruction CV_XOR_SCI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm6 = instr[25:20];
@@ -5288,12 +5392,12 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 				reg_rs2_prev = reg_file[rs2];
 				imm6_ext = {{27{imm6[4]}}, imm6[3:0], imm6[5]};
 				if (csr_reg_file[12'h0A0] == 2) begin
-					`uvm_info("CV_XOR_SCI_H", "Instruction CV_XOR_SCI_H detected successfully", UVM_LOW);
+					`uvm_info("CV_XOR_SCI_H", "Instruction CV_XOR_SCI_H detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 2; i++) begin
 						reg_file[rd][(i*16)+:16] = reg_file[rs1][(i*16)+:16] ^ imm6_ext[15:0];
 					end
 				end else if (csr_reg_file[12'h0A0] == 1) begin
-					`uvm_info("CV_XOR_SCI_B", "Instruction CV_XOR_SCI_B detected successfully", UVM_LOW);
+					`uvm_info("CV_XOR_SCI_B", "Instruction CV_XOR_SCI_B detected successfully", UVM_MEDIUM);
 					for (int i = 0; i < 4; i++) begin
 						reg_file[rd][(i*8)+:8] = reg_file[rs1][(i*8)+:8] ^ imm6_ext[7:0];
 					end
@@ -5303,7 +5407,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             DIV : begin
 
-                `uvm_info("DIV", "Instruction DIV detected successfully", UVM_LOW)
+                `uvm_info("DIV", "Instruction DIV detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5321,7 +5425,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             DIVU : begin
 
-                `uvm_info("DIVU", "Instruction DIVU detected successfully", UVM_LOW)
+                `uvm_info("DIVU", "Instruction DIVU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5337,21 +5441,21 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             EBREAK : begin
 
-                `uvm_info("EBREAK", "Instruction EBREAK detected successfully", UVM_LOW)
+                `uvm_info("EBREAK", "Instruction EBREAK detected successfully", UVM_MEDIUM)
                 // ebreak
 
             end
 
             ECALL : begin
 
-                `uvm_info("ECALL", "Instruction ECALL detected successfully", UVM_LOW)
+                `uvm_info("ECALL", "Instruction ECALL detected successfully", UVM_MEDIUM)
                 // ecall
 
             end
 
             FENCE : begin
 
-                `uvm_info("FENCE", "Instruction FENCE detected successfully", UVM_LOW)
+                `uvm_info("FENCE", "Instruction FENCE detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 fm = instr[31:28];
@@ -5363,7 +5467,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             JAL : begin
 
-                `uvm_info("JAL", "Instruction JAL detected successfully", UVM_LOW)
+                `uvm_info("JAL", "Instruction JAL detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 jimm20 = instr[31:12];
                 reg_rs1_prev = reg_file[rs1];
@@ -5377,7 +5481,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             JALR : begin
 
-                `uvm_info("JALR", "Instruction JALR detected successfully", UVM_LOW)
+                `uvm_info("JALR", "Instruction JALR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -5391,7 +5495,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             LB : begin
 
-                `uvm_info("LB", "Instruction LB detected successfully", UVM_LOW)
+                `uvm_info("LB", "Instruction LB detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -5404,7 +5508,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             LBU : begin
 
-                `uvm_info("LBU", "Instruction LBU detected successfully", UVM_LOW)
+                `uvm_info("LBU", "Instruction LBU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -5417,7 +5521,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             LH : begin
 
-                `uvm_info("LH", "Instruction LH detected successfully", UVM_LOW)
+                `uvm_info("LH", "Instruction LH detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -5430,7 +5534,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             LHU : begin
 
-                `uvm_info("LHU", "Instruction LHU detected successfully", UVM_LOW)
+                `uvm_info("LHU", "Instruction LHU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -5443,7 +5547,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             LUI : begin
 
-                `uvm_info("LUI", "Instruction LUI detected successfully", UVM_LOW)
+                `uvm_info("LUI", "Instruction LUI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 imm20 = instr[31:12];
                 reg_rs1_prev = reg_file[rs1];
@@ -5454,7 +5558,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             LW : begin
 
-                `uvm_info("LW", "Instruction LW detected successfully", UVM_LOW)
+                `uvm_info("LW", "Instruction LW detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -5467,7 +5571,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             MRET : begin
 
-                `uvm_info("MRET", "Instruction MRET detected successfully", UVM_LOW)
+                `uvm_info("MRET", "Instruction MRET detected successfully", UVM_MEDIUM)
                 // mret: return from machine mode exception
 				pc = csr_reg_file[12'h341]; // mepc CSR
 				incr = 0;
@@ -5476,7 +5580,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             MUL : begin
 
-                `uvm_info("MUL", "Instruction MUL detected successfully", UVM_LOW)
+                `uvm_info("MUL", "Instruction MUL detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5489,7 +5593,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             MULH : begin
 
-                `uvm_info("MULH", "Instruction MULH detected successfully", UVM_LOW)
+                `uvm_info("MULH", "Instruction MULH detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5502,7 +5606,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             MULHSU : begin
 
-                `uvm_info("MULHSU", "Instruction MULHSU detected successfully", UVM_LOW)
+                `uvm_info("MULHSU", "Instruction MULHSU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5515,7 +5619,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             MULHU : begin
 
-                `uvm_info("MULHU", "Instruction MULHU detected successfully", UVM_LOW)
+                `uvm_info("MULHU", "Instruction MULHU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5528,7 +5632,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             OR : begin
 
-                `uvm_info("OR", "Instruction OR detected successfully", UVM_LOW)
+                `uvm_info("OR", "Instruction OR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5540,7 +5644,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             ORI : begin
 
-                `uvm_info("ORI", "Instruction ORI detected successfully", UVM_LOW)
+                `uvm_info("ORI", "Instruction ORI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -5553,7 +5657,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             REM : begin
 
-                `uvm_info("REM", "Instruction REM detected successfully", UVM_LOW)
+                `uvm_info("REM", "Instruction REM detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5571,7 +5675,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             REMU : begin
 
-                `uvm_info("REMU", "Instruction REMU detected successfully", UVM_LOW)
+                `uvm_info("REMU", "Instruction REMU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5587,7 +5691,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SB : begin
 
-                `uvm_info("SB", "Instruction SB detected successfully", UVM_LOW)
+                `uvm_info("SB", "Instruction SB detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 imm12hi = instr[31:25];
@@ -5602,7 +5706,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SH : begin
 
-                `uvm_info("SH", "Instruction SH detected successfully", UVM_LOW)
+                `uvm_info("SH", "Instruction SH detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 imm12hi = instr[31:25];
@@ -5618,7 +5722,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SLL : begin
 
-                `uvm_info("SLL", "Instruction SLL detected successfully", UVM_LOW)
+                `uvm_info("SLL", "Instruction SLL detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5630,7 +5734,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SLLI : begin
 
-                `uvm_info("SLLI", "Instruction SLLI detected successfully", UVM_LOW)
+                `uvm_info("SLLI", "Instruction SLLI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 shamtw = instr[24:20];
@@ -5642,7 +5746,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SLT : begin
 
-                `uvm_info("SLT", "Instruction SLT detected successfully", UVM_LOW)
+                `uvm_info("SLT", "Instruction SLT detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5657,7 +5761,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SLTI : begin
 
-                `uvm_info("SLTI", "Instruction SLTI detected successfully", UVM_LOW)
+                `uvm_info("SLTI", "Instruction SLTI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -5672,7 +5776,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SLTIU : begin
 
-                `uvm_info("SLTIU", "Instruction SLTIU detected successfully", UVM_LOW)
+                `uvm_info("SLTIU", "Instruction SLTIU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
@@ -5687,7 +5791,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SLTU : begin
 
-                `uvm_info("SLTU", "Instruction SLTU detected successfully", UVM_LOW)
+                `uvm_info("SLTU", "Instruction SLTU detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5702,7 +5806,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SRA : begin
 
-                `uvm_info("SRA", "Instruction SRA detected successfully", UVM_LOW)
+                `uvm_info("SRA", "Instruction SRA detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5714,7 +5818,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SRAI : begin
 
-                `uvm_info("SRAI", "Instruction SRAI detected successfully", UVM_LOW)
+                `uvm_info("SRAI", "Instruction SRAI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 shamtw = instr[24:20];
@@ -5726,7 +5830,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SRL : begin
 
-                `uvm_info("SRL", "Instruction SRL detected successfully", UVM_LOW)
+                `uvm_info("SRL", "Instruction SRL detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5738,7 +5842,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SRLI : begin
 
-                `uvm_info("SRLI", "Instruction SRLI detected successfully", UVM_LOW)
+                `uvm_info("SRLI", "Instruction SRLI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 shamtw = instr[24:20];
@@ -5750,7 +5854,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SUB : begin
 
-                `uvm_info("SUB", "Instruction SUB detected successfully", UVM_LOW)
+                `uvm_info("SUB", "Instruction SUB detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5762,7 +5866,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             SW : begin
 
-                `uvm_info("SW", "Instruction SW detected successfully", UVM_LOW)
+                `uvm_info("SW", "Instruction SW detected successfully", UVM_MEDIUM)
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
                 imm12hi = instr[31:25];
@@ -5780,7 +5884,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             WFI : begin
 
-                `uvm_info("WFI", "Instruction WFI detected successfully", UVM_LOW)
+                `uvm_info("WFI", "Instruction WFI detected successfully", UVM_MEDIUM)
                 // wfi: wait for interrupt (treated as no-op in this model, it also sets the end of the simulation)
 				incr = 0;
 				rvfi_instr_seq_item.halt = 1;
@@ -5789,7 +5893,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             XOR : begin
 
-                `uvm_info("XOR", "Instruction XOR detected successfully", UVM_LOW)
+                `uvm_info("XOR", "Instruction XOR detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 rs2 = instr[24:20];
@@ -5801,7 +5905,7 @@ class uvmc_rvfi_decoder_model extends uvmc_rvfi_reference_model#(32, 32);
 
             XORI : begin
 
-                `uvm_info("XORI", "Instruction XORI detected successfully", UVM_LOW)
+                `uvm_info("XORI", "Instruction XORI detected successfully", UVM_MEDIUM)
                 rd = instr[11:7];
                 rs1 = instr[19:15];
                 imm12 = instr[31:20];
