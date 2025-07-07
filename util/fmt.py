@@ -80,7 +80,11 @@ git -C {CORE_TB_PATH} checkout {tb_commit}
 """
 
 parse_cmd = """
-cd {RISCV_OPCODES_DIR} && python parse.py -sverilog {ext_supported}
+cd {RISCV_OPCODES_DIR} && python parse.py {ext_supported} -sverilog
+"""
+
+autogen_cmd = """
+cd {RISCV_OPCODES_DIR} && python decoder_autogen.py
 """
 
 dpi_compile_cmd = """
