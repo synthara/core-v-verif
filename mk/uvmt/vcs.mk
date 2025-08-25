@@ -211,11 +211,11 @@ VCS_COMP = $(VCS_COMP_FLAGS) \
 		$(VCS_UVM_ARGS) \
 		$(VCS_USER_COMPILE_ARGS) \
 		-kdb \
+		-ucli \
+		-timescale=1ps/1ps \
 		+incdir+$(DV_UVME_PATH) \
 		+incdir+$(DV_UVMT_PATH) \
 		+define+BASE \
-		-f $(COPROC_FLIST) \
-		-f $(DATAMOVER_FLIST) \
 		-f $(CV_CORE_MANIFEST) \
 		$(VCS_FILE_LIST) \
 		$(UVM_PLUSARGS)
