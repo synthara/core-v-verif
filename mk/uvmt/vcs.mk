@@ -216,6 +216,10 @@ VCS_COMP = $(VCS_COMP_FLAGS) \
 		+incdir+$(DV_UVME_PATH) \
 		+incdir+$(DV_UVMT_PATH) \
 		+define+BASE \
+		-sdf min:uvmt_cv32e20_tb.dut_wrap.cv32e20_top_i:/scratch/fdm/trs/sta/cor/base/tristan_sta/functional_ss0p59vm40c/trs_cor_wrp.ss0p59vm40c.sdf \
+		+sdfverbose -diag=sdf:verbose +neg_tchk +old_ntc -sdfretain -xlrm retain_with_delayed_sig \
+		-debug_access+dmptf -debug_region+cell+encrypt -debug_access+all \
+		-tcheckvecsplit \
 		-f $(CV_CORE_MANIFEST) \
 		$(VCS_FILE_LIST) \
 		$(UVM_PLUSARGS)
